@@ -3,13 +3,15 @@ const STATES = {
     WALKING: "WALKING",
     JUMPING: "JUMPING",
     FALLING: "FALLING",
+    PRONE: "PRONE",
 }
 
 const TEXTURE_NAMES = {
     STANDING: "standingTextures",
     WALKING: "walkingTextures",
     JUMPING: "jumpTexture",
-    FALLING: "jumpTexture"
+    FALLING: "jumpTexture",
+    PRONE: "proneTexture"
 }
 
 const MODES = {

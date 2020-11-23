@@ -205,11 +205,13 @@ function initializeTextures() {
 		let standingTextures = characterSheet.animations[charId + "stand"];
 		let alertTextures = characterSheet.animations[charId + "alert"];
 		let jumpTexture = [characterSheet.textures[charId + "jump_0.png"]];
+		let proneTexture = [characterSheet.textures[charId + "prone_0.png"]];
 		let texture = {
 			walkingTextures,
 			standingTextures,
 			alertTextures,
 			jumpTexture,
+			proneTexture,
 		};
 		characterTextures.push(texture);
 	});
@@ -259,6 +261,9 @@ function shouldRender(mainContainer) {
 function handlePlayerState() {
 	switch (currentState) {
 		case STATES.STANDING:
+			for (let entity of entityGrid[0]) checkForObstacleCollisions(entity);
+			break;
+		case STATES.PRONE:
 			for (let entity of entityGrid[0]) checkForObstacleCollisions(entity);
 			break;
 		case STATES.WALKING:
@@ -421,9 +426,16 @@ function handleOtherPlayers() {
 	//	console.log(updatedPlayer);
 		// update player textures if they changed state
 		if (playerSprite.currentTextures !== updatedPlayer.currentTextures) {
+			if (updatedPlayer.currentTextures == TEXTURE_NAMES.PRONE) {
+				playerSprite.anchor.set(0.5, 0.1);
+			} else {
+				playerSprite.anchor.set(0.5);
+			}
 			playerSprite.textures = characterTextures[updatedPlayer.charId][updatedPlayer.currentTextures];
 			console.log(updatedPlayer.charId);
-			if (updatedPlayer.currentTextures != TEXTURE_NAMES.JUMPING) {
+			console.log(updatedPlayer.currentTextures);
+			if (updatedPlayer.currentTextures != TEXTURE_NAMES.JUMPING &&
+				updatedPlayer.currentTextures != TEXTURE_NAMES.PRONE) {
 				console.log("wtafweaf");
 				playerSprite.animationSpeed = ANIMATION_SPEEDS[updatedPlayer.currentTextures];
 				playerSprite.play();
@@ -458,6 +470,10 @@ function changeCharacterState(entity, state) {
 			entity.textures = characterTextures[entity.charId].standingTextures;
 			entity.animationSpeed = ANIMATION_SPEEDS.standingTextures;
 			entity.play();
+			break;
+		case STATES.PRONE:
+			currentState = STATES.PRONE;
+			entity.textures = characterTextures[entity.charId].proneTexture;
 			break;
 		case STATES.WALKING:
 			currentState = STATES.WALKING;
@@ -555,6 +571,7 @@ function handleFall() {
 const left = keyboard("ArrowLeft");
 const right = keyboard("ArrowRight");
 const jump = keyboard(" ");
+const down = keyboard("ArrowDown");
 
 let rightHeldDown = false, leftHeldDown = false, jumpButtonIsHeldDown = false;
 left.press = () => {
@@ -662,6 +679,18 @@ jump.press = () => {
 
 jump.release = () => {
 	jumpButtonIsHeldDown = false;
+}
+
+down.press = () => {
+	if (currentState !== STATES.STANDING ) return;
+	player.anchor.set(0.5, 0.1);
+	changeCharacterState(player, STATES.PRONE);
+}
+
+down.release = () => {
+	if (currentState !== STATES.PRONE) return;
+	player.anchor.set(0.5);
+	changeCharacterState(player, STATES.STANDING);
 }
 
 function keyboard(value) {

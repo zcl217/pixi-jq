@@ -93,8 +93,6 @@ function createJumpQuest1Viewport(
 	finishFlag.x = finalX + finishFlag.width/2;
 	finishFlag.y = finalY + 3;
 	finishFlag.anchor.set(0, 1);
-	console.log(finishFlag);
-	console.log(finalX + " "  + finalY);
 
     viewportSorter.obstacles = obstacles;
     
