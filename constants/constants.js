@@ -41,7 +41,7 @@ const BACKGROUND_SCALING_NEAR = 0.01;
 const TERMINAL_VELOCITY = 10;
 const GRAVITY = 0.5;
 
-const NEXT_STEP_X = 95;
+const NEXT_STEP_X = 80;
 const NEXT_STEP_Y = 60;
 
 const FINAL_PLATFORM = "finalPlatform";
