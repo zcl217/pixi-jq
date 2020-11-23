@@ -845,6 +845,7 @@ function handleSuccessfulJoinRoom(roomId) {
 	entityGrid[0] = generateLobbyBoundaries();
 	clearInterval(loadingAnimation);
 	setRoomIdNumber(roomId);
+	audioContext.lobby.play();
 }
 
 function joinRoomOut() {
