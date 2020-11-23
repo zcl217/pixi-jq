@@ -434,7 +434,7 @@ function generateObstacles(jumpQuestSheet) {
 			x: initialStepX + 50, 
 			y: -1070,
 			vx: 0,
-			vy: 3,
+			vy: 2,
 			boundary1: -1400,
 			boundary2: -700,
 			movementType: VERTICAL,
@@ -447,7 +447,7 @@ function generateObstacles(jumpQuestSheet) {
 			vx: 0,
 			vy: 15,
 			boundary1: -1900,
-			boundary2: -1100,
+			boundary2: -1300,
 			movementType: VERTICAL,
 			type: OBSTACLE,
 			rotate: true
