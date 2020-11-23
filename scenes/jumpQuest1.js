@@ -408,17 +408,17 @@ function generateObstacles(jumpQuestSheet) {
 			type: OBSTACLE,
 			rotate: true
 		},
-		{
-			x: initialStepX - 260, 
-			y: -1070,
-			vx: 6,
-			vy: 0,
-			boundary1: initialStepX - 260,
-			boundary2: initialStepX + 325,
-			movementType: HORIZONTAL,
-			type: OBSTACLE,
-			rotate: true
-		},
+		// {
+		// 	x: initialStepX - 260, 
+		// 	y: -1070,
+		// 	vx: 6,
+		// 	vy: 0,
+		// 	boundary1: initialStepX - 260,
+		// 	boundary2: initialStepX + 325,
+		// 	movementType: HORIZONTAL,
+		// 	type: OBSTACLE,
+		// 	rotate: true
+		// },
 		{
 			x: initialStepX + 300, 
 			y: -1070,
@@ -471,7 +471,7 @@ function generateObstacles(jumpQuestSheet) {
 function generateJumpQuest1Boundaries(entityGrid, tower) {
 
 	let leftWall = new Sprite();
-    leftWall.x = tower.x - 30;
+    leftWall.x = tower.x;
     leftWall.y = -2000;
 	leftWall.width = 30;
 	leftWall.height = 3000;
@@ -479,7 +479,7 @@ function generateJumpQuest1Boundaries(entityGrid, tower) {
     entityGrid[0].push(leftWall);
 
 	let rightWall = new Sprite();
-	rightWall.x = tower.width - 30;
+	rightWall.x = tower.width - 10;
     rightWall.y = -2000;
 	rightWall.width = 10;
 	rightWall.height = 3000;

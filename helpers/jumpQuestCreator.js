@@ -19,6 +19,8 @@ function createJumpQuest(
     playerContainer,
     selectedStage,
 ) {
+    //reset entitygrid
+    entityGrid[0].length = 0;
     mainContainer.menuScenes.visible = false;
     switch (selectedStage) {
         case 1:
