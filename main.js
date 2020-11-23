@@ -786,8 +786,8 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 				// console.log(sprite.y + " " + sprite.vy);
 				// not sure how to fix jump spam when landing on platform
 				//changeCharacterState(sprite, STATES.STANDING);
-				return;
-				changeCharacterState(sprite, STATES.JUMPING);
+				
+				//changeCharacterState(sprite, STATES.JUMPING);
 			}
 			if (leftHeldDown != rightHeldDown) {
 				console.log("walking");
