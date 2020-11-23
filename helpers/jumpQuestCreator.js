@@ -46,7 +46,13 @@ function createJumpQuest(
             mainContainer.jumpQuest1.visible = true;
             break;
     }
-    audioContext.title.fade(1, 0, 3000);
+    if (audioContext.title.playing()) {
+        console.log("Test");
+        audioContext.title.fade(1, 0, 3000);
+    }
+    if (audioContext.lobby.playing()) {
+        audioContext.lobby.fade(1, 0, 3000);
+    }
     playerContainer.y = -300;
     playerContainer.x = 350;
     viewportSorter.addChild(playerContainer, 10);

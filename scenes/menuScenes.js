@@ -770,6 +770,9 @@ function handleSuccessfulRoomCreation(roomId) {
 	addChildToScene(SCENES.MULTIPLAYER_LOBBY, startButton);
 
 	setRoomIdNumber(roomId);
+	
+	audioContext.title.fade(1, 0, 3000);
+	audioContext.lobby.play();
 }
 
 function setRoomIdNumber(roomId) {
