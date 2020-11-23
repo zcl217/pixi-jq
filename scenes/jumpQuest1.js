@@ -408,17 +408,17 @@ function generateObstacles(jumpQuestSheet) {
 			type: OBSTACLE,
 			rotate: true
 		},
-		// {
-		// 	x: initialStepX - 260, 
-		// 	y: -1070,
-		// 	vx: 6,
-		// 	vy: 0,
-		// 	boundary1: initialStepX - 260,
-		// 	boundary2: initialStepX + 325,
-		// 	movementType: HORIZONTAL,
-		// 	type: OBSTACLE,
-		// 	rotate: true
-		// },
+		{
+			x: initialStepX - 260, 
+			y: -1070,
+			vx: 6,
+			vy: 0,
+			boundary1: initialStepX - 260,
+			boundary2: initialStepX + 325,
+			movementType: HORIZONTAL,
+			type: OBSTACLE,
+			rotate: true
+		},
 		{
 			x: initialStepX + 300, 
 			y: -1070,
