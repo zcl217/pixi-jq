@@ -16,7 +16,8 @@ import {
 	CONNECTION_STATUS,
 	ANIMATION_SPEEDS,
 	SCENES,
-	ASSET_PATH
+	ASSET_PATH,
+	TELEPORT_PLATFORM
 } from './constants/constants.js';
 
 import SContainer from './scripts/SContainer.js';
@@ -145,7 +146,7 @@ let player, playerContainer;
 
 let clouds, movingBackgroundsFar, movingBackgroundsNear;
 
-let currentState = STATES.DISABLED, currentScene = '';
+let currentState = STATES.DISABLED;
 
 let entityGrid = [[]];
 
@@ -217,6 +218,10 @@ function initializeTextures() {
 let tick = 0;
 let initialRender = true;
 function gameLoop(delta) {
+	// if multiplayer mode, check for scene changes
+	if (sock) {
+		handleScene();
+	}
 	if (!shouldRender(mainContainer)) return;
 	if (sock) {
 		switch(connectionStatus) {
@@ -235,9 +240,8 @@ function gameLoop(delta) {
 		changeCharacterState(player, STATES.FALLING);
 		initialRender = false;
 	}
-	// if multiplayer mode
+	// if multiplayer mode, update other players
 	if (sock) {
-		handleScene();
 		handleMultiplayer();
 	}
 	player.nextFrameX = playerContainer.x + player.vx;
@@ -248,9 +252,7 @@ function gameLoop(delta) {
 }
 
 function shouldRender(mainContainer) {
-	return mainContainer.jumpQuest1.visible === true ||
-		   mainContainer.jumpQuest2?.visible === true ||
-		   mainContainer.jumpQuest3?.visible === true ||
+	return mainContainer.menuScenes.visible === false ||
 		   mainContainer.menuScenes?.multiplayerLobby.visible === true;
 }
 
@@ -344,9 +346,9 @@ function handleObstacleBoundaries(obstacle) {
 }
 
 function handleScene() {
-	if (currentScene !== updatedScene) {
+	if (mainContainer.currentScene !== updatedScene) {
 		changeCharacterState(player, STATES.FALLING);
-		currentScene = updatedScene;
+		mainContainer.currentScene = updatedScene;
 		let args = [
 			mainContainer,
 			viewportContainer,
@@ -501,7 +503,7 @@ function handleJump() {
 		// to do this, we could make a set to check which ones we are currenlty colliding with
 		// at the instant of our positive -> negative y velocity change
 		// we ignore all the ones in the set
-		if (entity.type !== WALL) {
+		if (entity.type !== WALL & entity.type !== OBSTACLE) {
 			if (player.vy < 0 && hitTestRectangle(player, entity) && entity.type !== OBSTACLE) {
 				console.log(entity);
 				currentlyCollidingSprites.add(entity);
@@ -530,11 +532,12 @@ function handleFall() {
 	let collided = false;
 	for (let entity of entityGrid[0]) {
 		if (currentlyCollidingSprites.has(entity)) continue;
+		if (entity.type === OBSTACLE) continue;
 		let direction = collisionDirection(player, entity, playerContainer);
 		//console.log(player.nextFrameY +  " " + player.gy +  " " + entity.y);
 		if (!direction) continue;
 		handleCollision(player, playerContainer, entity, direction);
-collided = true;
+		collided = true;
 		console.log((player.gy + player.halfHeight) + " " + entity.y);
 		break;
 	}
@@ -774,8 +777,10 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 			break;
 		case 'bottom':
 			if (currentState === STATES.WALKING) return;
+			setYVelocity(sprite, 0);
 			spriteContainer.y = entity.y - sprite.halfHeight;
 			//if (sprite.vy < 0) return;
+			console.log(entity.type);
 			switch (entity.type) {
 				case FINAL_PLATFORM:
 					//when reaching the final platform, we don't want to disable the char,
@@ -783,13 +788,18 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 					//changeCharacterState(sprite, STATES.DISABLED);
 					//return;
 					audioContext.jumpQuestFinished.play();
+					entity.type = '';
+					break;
+				case TELEPORT_PLATFORM:
+					playerContainer.x = entity.teleportCoordinatesX + player.halfWidth;
+					playerContainer.y = entity.teleportCoordinatesY - player.halfHeight;
+					console.log("Dafuq");
 					break;
 				default:
 					break;
 			}
 
 			console.log(sprite.vy);
-			setYVelocity(sprite, 0);
 			if (jumpButtonIsHeldDown) {
 				// console.log("jumping");
 				// console.log(sprite.y + " " + sprite.vy);

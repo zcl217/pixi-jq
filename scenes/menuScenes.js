@@ -549,7 +549,6 @@ function createStageSelection(
 				break;
 			case MODES.MULTIPLAYER:
 				handleMultiplayerStageConfirm();
-				createJumpQuest(...args, selectedStage);
 				break;
 			default:
 				break;

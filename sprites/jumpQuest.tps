@@ -88,9 +88,9 @@
         <key>maxTextureSize</key>
         <QSize>
             <key>width</key>
-            <int>2048</int>
+            <int>2500</int>
             <key>height</key>
-            <int>2048</int>
+            <int>2500</int>
         </QSize>
         <key>fixedTextureSize</key>
         <QSize>
@@ -211,6 +211,21 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">current spritesheet/jq assets/finishFlag.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>17,33,33,66</rect>
+                <key>scale9Paddings</key>
+                <rect>17,33,33,66</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">current spritesheet/jq assets/midClouds.png</key>
             <key type="filename">current spritesheet/jq assets/upperClouds.png</key>
             <struct type="IndividualSpriteSettings">
@@ -242,6 +257,51 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">current spritesheet/jq assets/platform1.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>285,58,569,115</rect>
+                <key>scale9Paddings</key>
+                <rect>285,58,569,115</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">current spritesheet/jq assets/platform2.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>202,20,403,40</rect>
+                <key>scale9Paddings</key>
+                <rect>202,20,403,40</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">current spritesheet/jq assets/platform3.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>108,53,217,105</rect>
+                <key>scale9Paddings</key>
+                <rect>108,53,217,105</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">platforms/jumpQuest1Step.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -266,6 +326,10 @@
             <filename>current spritesheet/jq assets/upperClouds.png</filename>
             <filename>platforms/jumpQuest1Step.png</filename>
             <filename>current spritesheet/jq assets/obstacle.png</filename>
+            <filename>current spritesheet/jq assets/platform2.png</filename>
+            <filename>current spritesheet/jq assets/platform1.png</filename>
+            <filename>current spritesheet/jq assets/platform3.png</filename>
+            <filename>current spritesheet/jq assets/finishFlag.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

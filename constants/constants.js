@@ -41,15 +41,19 @@ const BACKGROUND_SCALING_NEAR = 0.01;
 const TERMINAL_VELOCITY = 10;
 const GRAVITY = 0.5;
 
-const NEXT_STEP_X = 80;
+const NEXT_STEP_X = 85;
 const NEXT_STEP_Y = 60;
+
+
 
 const FINAL_PLATFORM = "finalPlatform";
 const OBSTACLE = "obstacle";
+const TELEPORT_PLATFORM = "teleportPlatform";
 const PLATFORM = "platform";
 const WALL = "wall";
 const HORIZONTAL = "horizontal";
 const VERTICAL = "vertical";
+const INVISIBLE = "invisible";
 
 const ANIMATION_SPEEDS = {
     walkingTextures: 0.07,
@@ -60,8 +64,22 @@ let PLAYABLE_CHARACTERS = [];
 for (let a = 1; a <= 12; a++) PLAYABLE_CHARACTERS.push(a.toString());
 console.log(PLAYABLE_CHARACTERS);
 
-const SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
-//const SERVER_URL = "http://localhost:3333/test";
+let local = false;
+
+let SERVER_URL;
+let START_POSITION_X;
+let START_POSITION_Y;
+if (local) {
+    SERVER_URL = "http://localhost:3333/test";
+    START_POSITION_X = 600;
+    START_POSITION_Y = -1630;
+} else {
+    SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
+    START_POSITION_X = 750;
+    START_POSITION_Y = -300;
+}
+
+
 
 const CONNECTION_STATUS = {
     PENDING: "PENDING",
@@ -84,11 +102,13 @@ export {
     BACKGROUND_SCALING_NEAR,
     TERMINAL_VELOCITY,
     FINAL_PLATFORM,
+    TELEPORT_PLATFORM,
     OBSTACLE,
     PLATFORM,
     WALL,
     HORIZONTAL,
     VERTICAL,
+    INVISIBLE,
     GRAVITY,
     NEXT_STEP_X,
     NEXT_STEP_Y,
@@ -99,5 +119,7 @@ export {
     SERVER_URL,
     CONNECTION_STATUS,
     SCENES,
-    ASSET_PATH
+    ASSET_PATH,
+    START_POSITION_Y,
+    START_POSITION_X
 };
