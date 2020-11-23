@@ -210,6 +210,7 @@ function generateStepPositions2() {
 		y
 	});
 	y -= NEXT_STEP_Y;
+	console.log(x);
 	for (let a = 0; a < 7; a++) {
 		steps.push({
 			x,
@@ -223,6 +224,7 @@ function generateStepPositions2() {
 		y
 	});
 	y -= NEXT_STEP_Y;
+	console.log(x);
 	for (let a = 0; a < 7; a++) {
 		steps.push({
 			x,
@@ -252,13 +254,57 @@ function generateStepPositions2() {
 // y: -590,
 function generateObstacles(entityGrid, jumpQuestSheet) {
 	let obstacles = [
+		// {
+		// 	x: 300, 
+		// 	y: -620,
+		// 	vx: 3,
+		// 	vy: 0,
+		// 	boundary1: 300,
+		// 	boundary2: 850,
+		// 	movementType: HORIZONTAL,
+		// 	type: OBSTACLE,
+		// 	rotate: true
+		// },
 		{
 			x: 300, 
-			y: -620,
+			y: -950,
 			vx: 3,
 			vy: 0,
-			boundary1: 300,
-			boundary2: 850,
+			boundary1: 40,
+			boundary2: 625,
+			movementType: HORIZONTAL,
+			type: OBSTACLE,
+			rotate: true
+		},
+		{
+			x: 300, 
+			y: -950,
+			vx: 3,
+			vy: 0,
+			boundary1: 40,
+			boundary2: 625,
+			movementType: HORIZONTAL,
+			type: OBSTACLE,
+			rotate: true
+		},
+		{
+			x: 40, 
+			y: -1070,
+			vx: 6,
+			vy: 0,
+			boundary1: 40,
+			boundary2: 625,
+			movementType: HORIZONTAL,
+			type: OBSTACLE,
+			rotate: true
+		},
+		{
+			x: 600, 
+			y: -1070,
+			vx: 3,
+			vy: 0,
+			boundary1: 40,
+			boundary2: 625,
 			movementType: HORIZONTAL,
 			type: OBSTACLE,
 			rotate: true
@@ -269,6 +315,7 @@ function generateObstacles(entityGrid, jumpQuestSheet) {
 		let obstacle = new Sprite(jumpQuestSheet.textures['obstacle.png']);
 		obstacleSprites.push(obstacle);
 		Object.assign(obstacle, obstacleData);
+		obstacle.y -= obstacle.height;
 		obstacle.halfWidth = obstacle.width / 2 - obstacle.width / 4;
 		obstacle.type = obstacleData.type;
 		if (obstacleData.rotate) {

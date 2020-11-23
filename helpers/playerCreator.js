@@ -51,10 +51,12 @@ function createNameContainer(playerSprite, playerName) {
     nameContainer.addChild(nameBackground);
     nameContainer.addChild(name);
     nameContainer.name = name;
-    nameBackground.x = playerSprite.halfWidth / 2 - nameBackground.width / 1.7;
-    nameBackground.y = playerSprite.halfHeight / 1.1;
-    name.x = playerSprite.halfWidth / 2 - name.width / 1.7;
-    name.y = playerSprite.halfHeight / 1.1;
+    console.log(playerSprite.x + " " + playerSprite.halfWidth + " " + nameBackground.width);
+    nameBackground.x = playerSprite.x - nameBackground.width / 2;
+    console.log(nameBackground.x);
+    nameBackground.y = playerSprite.halfHeight;
+    name.x = playerSprite.x - name.width / 2;
+    name.y = playerSprite.halfHeight;
     return nameContainer;
 }
 

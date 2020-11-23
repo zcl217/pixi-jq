@@ -47,7 +47,7 @@ function createJumpQuest(
             break;
     }
     audioContext.title.fade(1, 0, 3000);
-    playerContainer.y = -100;
+    playerContainer.y = -300;
     playerContainer.x = 350;
     viewportSorter.addChild(playerContainer, 10);
     viewportContainer.follow(playerContainer, {

@@ -1,6 +1,6 @@
 import { STATES, OBSTACLE } from '../constants/constants.js';
 
-export const spriteCollision = (
+export const collisionDirection = (
 	r1, r2, r1Container, r1State = undefined,
 	currentlyCollidingSprite = undefined, bounce = false, global = true
 ) => {

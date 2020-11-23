@@ -21,7 +21,7 @@ import {
 
 import SContainer from './scripts/SContainer.js';
 import {
-	spriteCollision,
+	collisionDirection,
 	platformCollision,
 	hitTestRectangle
 } from './helpers/collisionHandler.js';
@@ -232,8 +232,8 @@ function gameLoop(delta) {
 	if (initialRender) {
 		playerContainer = mainContainer.menuScenes.playerContainer;
 		player = mainContainer.menuScenes.playerContainer.player;
-		initialRender = false;
 		changeCharacterState(player, STATES.FALLING);
+		initialRender = false;
 	}
 	// if multiplayer mode
 	if (sock) {
@@ -269,7 +269,7 @@ function handlePlayerState() {
 				//	console.log(entity.x + " " + entity.width + " " + playerContainer.x);
 				}
 				//console.log(entity.type);
-				let direction = spriteCollision(player, entity, playerContainer);
+				let direction = collisionDirection(player, entity, playerContainer);
 				if (!direction) continue;
 				switch(entity.type) {
 					case OBSTACLE:
@@ -300,7 +300,7 @@ function handlePlayerState() {
 }
 
 function checkForObstacleCollisions(entity) {
-	let direction = spriteCollision(player, entity, playerContainer);
+	let direction = collisionDirection(player, entity, playerContainer);
 	if (entity.type === OBSTACLE && direction) {
 		handleCollision(player, playerContainer, entity, direction);
 		changeCharacterState(player, STATES.FALLING);
@@ -345,6 +345,7 @@ function handleObstacleBoundaries(obstacle) {
 
 function handleScene() {
 	if (currentScene !== updatedScene) {
+		changeCharacterState(player, STATES.FALLING);
 		currentScene = updatedScene;
 		let args = [
 			mainContainer,
@@ -405,8 +406,10 @@ function handleOtherPlayers() {
 	for (let a = 0; a < updatedPlayerProperties.length; a++) {
 		let updatedPlayer = updatedPlayerProperties[a];
 		// don't need to update yourself
-		if (updatedPlayer.connectionId === currentConnectionId) continue;
+		if (!updatedPlayer.connectionId || 
+			(updatedPlayer.connectionId === currentConnectionId)) continue;
 		if (!otherPlayersMap.has(updatedPlayer.connectionId)) {
+			console.log(updatedPlayer.connectionId + " " + currentConnectionId);
 			addPlayer(updatedPlayer);
 			console.log("wtf");
 			continue;
@@ -490,7 +493,7 @@ function handleJump() {
 	for (let entity of entityGrid[0]) {
 //		console.log(entity.type);
 		if (currentlyCollidingSprites.has(entity)) continue;
-		//if we're going up, ignore all entities
+		//if we're going up, ignore all entities (except walls)
 		// HOWEVER, THIS GLITCHES OUT WHEN OUR VELOCITY CHANGES FROM POSITIVE TO NEGATIVE
 		// WHILE COLLIDING WITH AN ENTITY, SINCE WE START CONSIDERING COLLISION
 		// IN THE MIDST OF AN ONGOING COLLISION
@@ -498,13 +501,15 @@ function handleJump() {
 		// to do this, we could make a set to check which ones we are currenlty colliding with
 		// at the instant of our positive -> negative y velocity change
 		// we ignore all the ones in the set
-		if (player.vy < 0 && hitTestRectangle(player, entity) && entity.type !== OBSTACLE) {
-			console.log(entity);
-			currentlyCollidingSprites.add(entity);
+		if (entity.type !== WALL) {
+			if (player.vy < 0 && hitTestRectangle(player, entity) && entity.type !== OBSTACLE) {
+				console.log(entity);
+				currentlyCollidingSprites.add(entity);
+			}
+			//ignore collision if moving upwards
+			if (player.vy < 0) continue;
 		}
-		//ignore collision if moving upwards
-		if (player.vy < 0) continue;
-		let direction = spriteCollision(player, entity, playerContainer);
+		let direction = collisionDirection(player, entity, playerContainer);
 		if (!direction) continue;
 		handleCollision(player, playerContainer, entity, direction);
 
@@ -525,7 +530,7 @@ function handleFall() {
 	let collided = false;
 	for (let entity of entityGrid[0]) {
 		if (currentlyCollidingSprites.has(entity)) continue;
-		let direction = spriteCollision(player, entity, playerContainer);
+		let direction = collisionDirection(player, entity, playerContainer);
 		//console.log(player.nextFrameY +  " " + player.gy +  " " + entity.y);
 		if (!direction) continue;
 		handleCollision(player, playerContainer, entity, direction);
@@ -757,6 +762,10 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 		currentlyCollidingSprites.add(entity);
 		return;
 	}
+	if (entity.type === WALL) {
+		handleWallCollision(sprite, spriteContainer, entity);
+		return;
+	}
 	switch (direction) {
 		case 'top':
 			return;
@@ -765,7 +774,7 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 			break;
 		case 'bottom':
 			if (currentState === STATES.WALKING) return;
-			playerContainer.y = entity.y - player.halfHeight;
+			spriteContainer.y = entity.y - sprite.halfHeight;
 			//if (sprite.vy < 0) return;
 			switch (entity.type) {
 				case FINAL_PLATFORM:
@@ -803,12 +812,12 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 		case 'left':
 			if (currentState !== STATES.WALKING) return;
 			setXVelocity(sprite, 0);
-			spriteContainer.x = entity.x + entity.width + playerContainer.width/2;
+			spriteContainer.x = entity.x + entity.width + sprite.width/2;
 			break;
 		case 'right':
 			if (currentState !== STATES.WALKING) return;
 			setXVelocity(sprite, 0);
-			spriteContainer.x = entity.x - player.width/2 + 15;
+			spriteContainer.x = entity.x - sprite.width/2 + 15;
 			break;
 		default:
 			break;
@@ -823,4 +832,15 @@ function flinchSprite(r1, r1Container, direction) {
 		r1.vx = -3;
 	}
 	console.log(r1.vx + " " + r1.vy);
+}
+
+function handleWallCollision(sprite, spriteContainer, entity) {
+	
+	// sprite is on the right of the wall
+	if (spriteContainer.x > (entity.x + entity.width/2)) {
+		spriteContainer.x = entity.x + entity.width + spriteContainer.width/2;
+	} else {
+		spriteContainer.x = entity.x - sprite.width/2 + 15;
+	}
+	setXVelocity(sprite, 0);
 }
