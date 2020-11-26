@@ -19,19 +19,6 @@ import {
 	ASSET_PATH,
 	TELEPORT_PLATFORM
 } from './constants/constants.js';
-
-import SContainer from './scripts/SContainer.js';
-import {
-	collisionDirection,
-	platformCollision,
-	hitTestRectangle
-} from './helpers/collisionHandler.js';
-
-import createAllMenuScenes from './scenes/menuScenes.js';
-import {
-	createJumpQuest1Scene,
- } from './scenes/jumpQuest1.js';
- 
 import socketTypes from './constants/socketTypes.js';
 
 import { 
@@ -39,9 +26,21 @@ import {
 	connectionStatus,
 	updatedPlayerProperties,
 	currentConnectionId,
-	updatedScene
+	playersToRemove
 } from './sockClient.js';
 
+import SContainer from './scripts/SContainer.js';
+
+import createAllMenuScenes from './scenes/menuScenes.js';
+import { createJumpQuest1Scene } from './scenes/jumpQuest1.js';
+import { createJumpQuest2Scene } from './scenes/jumpQuest2.js';
+import { createJumpQuest3Scene } from './scenes/jumpQuest3.js';
+
+import {
+	collisionDirection,
+	platformCollision,
+	hitTestRectangle
+} from './helpers/collisionHandler.js';
 import { audioContext } from '../helpers/audio.js';
 import createCharacter from '../helpers/playerCreator.js';
 import createJumpQuest from './helpers/jumpQuestCreator.js';
@@ -51,10 +50,7 @@ if (!PIXI.utils.isWebGLSupported()) {
 	type = "canvas";
 }
 
-const {
-	loader,
-	Container,
-} = PIXI;
+const { loader } = PIXI;
 PIXI.utils.sayHello(type);
 
 //Create a Pixi Application
@@ -70,7 +66,6 @@ let app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 const mainContainer = new SContainer();
-const viewportSorter = new SContainer();
 app.stage.addChild(mainContainer);
 
 const viewportContainer = new Viewport.Viewport({
@@ -78,14 +73,15 @@ const viewportContainer = new Viewport.Viewport({
 	screenHeight: window.innerHeight,
 	worldWidth: 512,
 	worldHeight: 512,
-
 	interaction: app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
 })
 
+const viewportSorter = new SContainer();
 viewportContainer.addChild(viewportSorter);
 
-// viewport.clamp({
-//   direction: 'all'
+// viewportContainer.clampZoom({
+//   maxWidth: 2000,
+//   maxHeight: 500
 // });
 
 window.addEventListener('resize', () => {
@@ -101,17 +97,6 @@ app.renderer.resize(window.innerWidth, window.innerHeight);
 app.renderer.plugins.interaction.cursorStyles.default = "url('" + ASSET_PATH + "sprites/current spritesheet/cursor.png'),auto";
 app.renderer.plugins.interaction.cursorStyles.hover = "url('" + ASSET_PATH + "sprites/current spritesheet/cursorHover.png'),auto"
 app.renderer.plugins.interaction.cursorStyles.click = "url('" + ASSET_PATH + "sprites/current spritesheet/cursorClick.png'),auto";
-//app.stage.addChild(viewport);
-// mainContainer.addChild(viewport, 10);
-// viewport.interactive = true;
-// viewport.on('pointerdown', () => {
-//   console.log("ASdf");
-//   viewport.cursor= "url('./sprites/temp/cursorClick.png'),auto";
-// });
-// viewport.on('pointerup', () => {
-//   console.log("Wew");
-//   viewport.cursor = "url('./sprites/temp/cursor.png'),auto";
-// })
 
 viewportContainer
 	// .drag({
@@ -124,14 +109,15 @@ viewportContainer
 
 //in the future, make sure we put all sprites in the spritesheet
 PIXI.loader
-	.add('clouds', ASSET_PATH + "sprites/current spritesheet/midClouds.png")
-	.add("bgtf", ASSET_PATH + "sprites/current spritesheet/jq assets/bgTowerFar.png")
-	.add('towerA', ASSET_PATH + "sprites/current spritesheet/jq assets/towerA.png")
-	.add('platform1', ASSET_PATH + "sprites/current spritesheet/platform1.png")
-	.add('roomIdStand', ASSET_PATH + "sprites/current spritesheet/roomIdStand.png")
+	.add('ludiClouds', ASSET_PATH + "sprites/current spritesheet/jq assets/ludi/midClouds.png")
+	.add('towerA', ASSET_PATH + "sprites/current spritesheet/jq assets/ludi/towerA.png")
+	.add('platform1', ASSET_PATH + "sprites/current spritesheet/jq assets/ludi/platform1.png")
+	.add('mushFloor', ASSET_PATH + "sprites/current spritesheet/jq assets/mush/mushFloor.png")
+	.add('mushFloorBg', ASSET_PATH + "sprites/current spritesheet/jq assets/mush/mushFloorBg.png")
 	.add(ASSET_PATH + "sprites/characters.json")
 	.add(ASSET_PATH + "sprites/menuSheet.json")
-	.add(ASSET_PATH + "sprites/jumpQuest.json")
+	.add(ASSET_PATH + "sprites/jumpQuest1.json")
+	.add(ASSET_PATH + "sprites/jumpQuest2.json")
 	.load(setup);
 
 loader.onProgress.add(loadHandler);
@@ -141,65 +127,28 @@ function loadHandler(loader, resource) {
 	console.log("Progress: " + loader.progress.toString().substring(0, 4) + "%");
 }
 
-let characterSheet;
 let player, playerContainer;
 
-let clouds, movingBackgroundsFar, movingBackgroundsNear;
-
 let currentState = STATES.DISABLED;
+let updatedScene;
 
-let entityGrid = [[]];
+let entityGrid = [[]], obstacleList = [];
 
 let otherPlayersMap = new Map();
 
 function setup() {
 	console.log(app.renderer.type);
-	characterSheet = loader.resources[ASSET_PATH + "sprites/characters.json"].spritesheet;
 	//app.stage.viewportContainer.visible = false;
-	initializeTextures();
-
-	//let menuScenes = createMenuScene();
-	let jumpQuest1 = createJumpQuest1Scene(loader);
-	
-	//we should create all containers in menuscenes.js instead!
-	// then just reassign them here!
-	const containers = {
-		viewportContainer,
-		viewportSorter,
-		entityGrid,
-		mainContainer
-	};
-	console.log(containers);
-	let menuScenes = createAllMenuScenes(
-						app, 
-						loader, 
-						characterTextures, 
-						containers,
-						sock
-					);
-	mainContainer.addChild(menuScenes);
-	mainContainer.addChild(jumpQuest1);
-	mainContainer.menuScenes = menuScenes;
-	mainContainer.jumpQuest1 = jumpQuest1;
-
-	menuScenes.x = app.screen.width/2 - menuScenes.width/2;
-	menuScenes.y = app.screen.height/2 - menuScenes.height/2;
-	
-	movingBackgroundsFar  = jumpQuest1.movingBackgroundsFar;
-	movingBackgroundsNear = jumpQuest1.movingBackgroundsNear;
-	clouds = jumpQuest1.clouds;
-	mainContainer.menuScenes.visible = true;
-	mainContainer.jumpQuest1.visible = false;
+	initializeCharacterTextures();
+	initializeScenes();
 	app.renderer.backgroundColor = 0x000000;
 	audioContext.title.play();
-	console.log(menuScenes);
-
-
 	app.ticker.add(delta => gameLoop(delta));
 }
 
 const characterTextures = [];
-function initializeTextures() {
+function initializeCharacterTextures() {
+	const characterSheet = loader.resources[ASSET_PATH + "sprites/characters.json"].spritesheet;
 	PLAYABLE_CHARACTERS.forEach((charId) => {
 		let walkingTextures = characterSheet.animations[charId + "walk"];
 		let standingTextures = characterSheet.animations[charId + "stand"];
@@ -217,31 +166,50 @@ function initializeTextures() {
 	});
 }
 
-let tick = 0;
-let initialRender = true;
+function initializeScenes() {
+	let jumpQuest1 = createJumpQuest1Scene(loader);
+	let jumpQuest2 = createJumpQuest2Scene(loader);
+	let jumpQuest3 = createJumpQuest3Scene(loader);
+	// let jumpQuest4 = createJumpQuest4Scene(loader);
+	let menuScenes = createAllMenuScenes(
+		mainContainer,
+		loader,
+		characterTextures, 
+		entityGrid
+	);
+	console.log(jumpQuest1);
+	mainContainer.addChild(menuScenes);
+	mainContainer.addChild(jumpQuest1);
+	mainContainer.addChild(jumpQuest2);
+	mainContainer.addChild(jumpQuest3);
+	mainContainer.menuScenes = menuScenes;
+	mainContainer.jumpQuest1 = jumpQuest1;
+	mainContainer.jumpQuest2 = jumpQuest2;
+	mainContainer.jumpQuest3 = jumpQuest3;
+
+	menuScenes.x = app.screen.width/2 - menuScenes.width/2;
+	menuScenes.y = app.screen.height/2 - menuScenes.height/2;
+	
+	mainContainer.menuScenes.visible = true;
+	mainContainer.jumpQuest1.visible = false;
+	mainContainer.jumpQuest2.visible = false;
+	mainContainer.jumpQuest3.visible = false;
+}
+
 function gameLoop(delta) {
-	// if multiplayer mode, check for scene changes
-	if (sock) {
-		handleScene();
-	}
-	if (!shouldRender(mainContainer)) return;
 	if (sock) {
 		switch(connectionStatus) {
 			case CONNECTION_STATUS.PENDING:
 				return;
 			case CONNECTION_STATUS.ERROR:
-				console.log("error");
+				console.log("Error in server connection");
 				return;
 			default:
 				break;
 		}
 	}
-	if (initialRender) {
-		playerContainer = mainContainer.menuScenes.playerContainer;
-		player = mainContainer.menuScenes.playerContainer.player;
-		changeCharacterState(player, STATES.FALLING);
-		initialRender = false;
-	}
+	if (!shouldRender(mainContainer)) return;
+	handleScene();
 	// if multiplayer mode, update other players
 	if (sock) {
 		handleMultiplayer();
@@ -249,27 +217,206 @@ function gameLoop(delta) {
 	player.nextFrameX = playerContainer.x + player.vx;
 	player.nextFrameY = playerContainer.y + player.vy;
 	handlePlayerState();
-	handleBackground();
-	handleObstacleMovement(entityGrid, delta);
+	handleClouds();
+	handleObstacleMovement(delta);
 }
 
 function shouldRender(mainContainer) {
 	return mainContainer.menuScenes.visible === false ||
-		   mainContainer.menuScenes?.multiplayerLobby.visible === true;
+		   	 mainContainer.menuScenes.multiplayerLobby.visible === true;
+}
+
+function handleScene() {
+	if (mainContainer.currentScene !== updatedScene) {
+		console.log(mainContainer.currentScene + " " + updatedScene);
+		mainContainer.currentScene = updatedScene;
+		viewportContainer.follow(playerContainer, {
+			radius: 80,
+		});
+		changeCharacterState(player, STATES.FALLING);
+		// I think we have to also clear the players in viewport sorter, or 
+		// find a way to only add new players in them once and never do that again
+		// before adding them again. not sure how we will handle
+		// changing back and forth between jq and lobby
+
+		//also fix the logic for how we do this currentscene !== updatedscene thing
+		// right now i'm just toggling menuScenes.visible = false in onStageConfirm
+		// but we also do that another time in createJumpQuest, so must be a way
+		// we can simplify this
+		obstacleList.length = 0;
+		let args = [
+			mainContainer,
+			loader,
+			entityGrid,
+			audioContext,
+			playerContainer
+		];
+		console.log(updatedScene);
+		switch(updatedScene) {
+			case SCENES.JUMP_QUEST_1:
+				createJumpQuest(...args, 1);
+				handleJumpQuestSceneChange(1);
+				break;
+			case SCENES.JUMP_QUEST_2:
+				createJumpQuest(...args, 2);
+				handleJumpQuestSceneChange(2);
+				//clamp zoom here?
+				break;
+			case SCENES.JUMP_QUEST_3:
+				createJumpQuest(...args, 3);
+				handleJumpQuestSceneChange(3);
+				break;
+			case SCENES.JUMP_QUEST_4:
+				createJumpQuest(...args, 4);
+				handleJumpQuestSceneChange(4);
+				break;
+			case SCENES.LOBBY:
+				mainContainer.jumpQuest1.visible = false;
+				mainContainer.jumpQuest2.visible = false;
+				mainContainer.jumpQuest3.visible = false;
+				mainContainer.jumpQuest4.visible = false;
+				mainContainer.menuScenes.multiplayerLobby.visible = true;
+				// transferPlayersToNewScene(mainContainer.menuScenes.multiplayerLobby);
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+function handleJumpQuestSceneChange(sceneNumber) {
+	// transferPlayersToNewScene(viewportSorter);
+	let currentJumpQuest = 'jumpQuest' + sceneNumber;
+	console.log(mainContainer[currentJumpQuest]);
+	console.log(currentJumpQuest);
+	entityGrid.forEach((grid) => {
+		obstacleList.push(...grid.filter((entity) => entity.type === OBSTACLE));
+	});
+	obstacleList.forEach((obstacle) => {
+		viewportSorter.addChild(obstacle, 5);
+	});
+	console.log(obstacleList);
+}
+
+function transferPlayersToNewScene(container) {
+	console.log("Transferring players.");
+	otherPlayersMap.forEach((player, connectionId) => {
+		console.log(currentConnectionId + " " + connectionId);
+		// for some reason connectionId is sometimes undefined, not sure why
+		if (connectionId && (currentConnectionId !== connectionId)) {
+			console.log("Adding child!");
+			container.addChild(player);
+		}
+	});
+}
+
+function handleMultiplayer() {
+	handleOtherPlayers();
+	sock.send(JSON.stringify({
+		type: socketTypes.UPDATE_PLAYER,
+		player: {
+			connectionId: currentConnectionId,
+			charId: playerContainer.charId,
+			currentTextures: TEXTURE_NAMES[currentState],
+			x: playerContainer.x,
+			y: playerContainer.y,
+			direction: player.scale.x,
+			name: playerContainer.name,
+		}
+	}));
+}
+
+function handleOtherPlayers() {
+	while (playersToRemove.length > 0) {
+		let id = playersToRemove.pop().connectionId;
+		let playerToRemove = otherPlayersMap.get(id);
+		playerToRemove.destroy();
+		otherPlayersMap.delete(id);
+		removePlayerFromContainers(id);
+	}
+	for (let a = 0; a < updatedPlayerProperties.length; a++) {
+		let updatedPlayer = updatedPlayerProperties[a];
+		// don't need to update yourself
+		if (!updatedPlayer.connectionId || 
+			(updatedPlayer.connectionId === currentConnectionId)) continue;
+		// add player if they aren't in the map
+		if (!otherPlayersMap.has(updatedPlayer.connectionId)) {
+			addPlayer(updatedPlayer);
+			continue;
+		}
+		let playerContainer = otherPlayersMap.get(updatedPlayer.connectionId);
+		let playerSprite = playerContainer.player;
+	//	console.log(updatedPlayer);
+		// update player textures if they changed state
+		if (playerSprite.currentTextures !== updatedPlayer.currentTextures) {
+			updateOtherPlayerTextures(updatedPlayer, playerSprite);
+		}
+		playerContainer.x = updatedPlayer.x;
+		playerContainer.y = updatedPlayer.y;
+		playerSprite.scale.x = updatedPlayer.direction;
+	}
+}
+
+function removePlayerFromContainers(id) {
+	for (let a = 0; a < viewportSorter.children.length; a++) {
+		if (viewportSorter[a].connectionId === id) {
+			viewportSorter.splice(a, 1);
+			break;
+		}
+	}
+	let lobby = mainContainer.menuScenes.multiplayerLobby;
+	for (let a = 0; a < lobby.children.length; a++) {
+		if (lobby.children[a].connectionId === id) {
+			lobby.splice(a, 1);
+			break;
+		}
+	}
+}
+
+function updateOtherPlayerTextures(updatedPlayer, playerSprite) {
+	// handle anchor setting
+	if (updatedPlayer.currentTextures == TEXTURE_NAMES.PRONE) {
+		playerSprite.anchor.set(0.5, 0.1);
+	} else {
+		playerSprite.anchor.set(0.5);
+	}
+	playerSprite.textures = characterTextures[updatedPlayer.charId][updatedPlayer.currentTextures];
+	// handle animation playing
+	if (updatedPlayer.currentTextures != TEXTURE_NAMES.JUMPING &&
+		updatedPlayer.currentTextures != TEXTURE_NAMES.PRONE) {
+		playerSprite.animationSpeed = ANIMATION_SPEEDS[updatedPlayer.currentTextures];
+		playerSprite.play();
+	}
+	playerSprite.currentTextures = updatedPlayer.currentTextures;
+}
+
+function addPlayer(playerToAdd) {
+	console.log(playerToAdd);
+	console.log("Hey?");
+	let connectionId = playerToAdd.connectionId;
+
+	let newPlayerContainer = createCharacter(playerToAdd.playerName, playerToAdd.charId, characterTextures);
+	mainContainer.menuScenes.multiplayerLobby.addChild(newPlayerContainer);
+	viewportSorter.addChild(newPlayerContainer);
+	newPlayerContainer.x = 200;
+	newPlayerContainer.y = -100;
+	// a local property that helps us decide when to change textures
+	newPlayerContainer.player.currentTextures = TEXTURE_NAMES.JUMPING;
+	otherPlayersMap.set(connectionId, newPlayerContainer);
 }
 
 function handlePlayerState() {
 	switch (currentState) {
 		case STATES.STANDING:
-			for (let entity of entityGrid[0]) checkForObstacleCollisions(entity);
+			for (let entity of obstacleList) checkForObstacleCollisions(entity);
 			break;
 		case STATES.PRONE:
-			for (let entity of entityGrid[0]) checkForObstacleCollisions(entity);
+			for (let entity of obstacleList) checkForObstacleCollisions(entity);
 			break;
 		case STATES.WALKING:
 			moveCharacterRelatively(playerContainer, player.vx, 0);
 			moveBackgroundsRelatively(player.vx, 0);
-			//check if on platform still, if not then change to falling state
+			//check if on platform, if not then change to falling state
 			let onPlatform = false;
 			for (let entity of entityGrid[0]) {
 				if (entity.type === WALL) {
@@ -314,13 +461,12 @@ function checkForObstacleCollisions(entity) {
 	}
 }
 
-function handleBackground() {
-	clouds.tilePosition.x += 0.1;
-	clouds.tilePosition.y += 0;
+function handleClouds() {
+	mainContainer[updatedScene].clouds.tilePosition.x += 0.1;
+	mainContainer[updatedScene].clouds.tilePosition.y += 0;
 }
 
-function handleObstacleMovement(entityGrid, delta) {
-	let obstacleList = entityGrid[0].filter((entity) => entity.type === OBSTACLE);
+function handleObstacleMovement(delta) {
 	obstacleList.forEach((obstacle) => {
 		obstacle.x += obstacle.vx;
 		obstacle.y += obstacle.vy;
@@ -350,120 +496,9 @@ function handleObstacleBoundaries(obstacle) {
 	}
 }
 
-function handleScene() {
-	if (mainContainer.currentScene !== updatedScene) {
-		changeCharacterState(player, STATES.FALLING);
-		mainContainer.currentScene = updatedScene;
-		let args = [
-			mainContainer,
-			viewportContainer,
-			loader,
-			viewportSorter,
-			entityGrid,
-			app,
-			audioContext,
-			playerContainer
-		];
-		switch(updatedScene) {
-			case SCENES.JUMP_QUEST_1:
-				createJumpQuest(...args, 1);
-				transferPlayersToNewScene(viewportSorter);
-				break;
-			case SCENES.JUMP_QUEST_2:
-				createJumpQuest(...args, 2);
-				transferPlayersToNewScene(viewportSorter);
-				break;
-			case SCENES.JUMP_QUEST_3:
-				createJumpQuest(...args, 3);
-				transferPlayersToNewScene(viewportSorter);
-				break;
-		}
-	}
-}
-
-function transferPlayersToNewScene(container) {
-	console.log("Transferring players.");
-	otherPlayersMap.forEach((player, connectionId) => {
-		console.log(currentConnectionId + " " + connectionId);
-		// for some reason connectionId is sometimes undefined, not sure why
-		if (connectionId && (currentConnectionId !== connectionId)) {
-			console.log("Adding child!");
-			container.addChild(player);
-		}
-	});
-}
-
-function handleMultiplayer() {
-	handleOtherPlayers();
-	sock.send(JSON.stringify({
-		type: socketTypes.UPDATE_PLAYER,
-		player: {
-			connectionId: currentConnectionId,
-			charId: playerContainer.charId,
-			currentTextures: TEXTURE_NAMES[currentState],
-			x: playerContainer.x,
-			y: playerContainer.y,
-			direction: player.scale.x,
-			name: playerContainer.name,
-		}
-	}));
-}
-
-function handleOtherPlayers() {
-	for (let a = 0; a < updatedPlayerProperties.length; a++) {
-		let updatedPlayer = updatedPlayerProperties[a];
-		// don't need to update yourself
-		if (!updatedPlayer.connectionId || 
-			(updatedPlayer.connectionId === currentConnectionId)) continue;
-		if (!otherPlayersMap.has(updatedPlayer.connectionId)) {
-			console.log(updatedPlayer.connectionId + " " + currentConnectionId);
-			addPlayer(updatedPlayer);
-			console.log("wtf");
-			continue;
-		}
-		let playerContainer = otherPlayersMap.get(updatedPlayer.connectionId);
-		let playerSprite = playerContainer.player;
-	//	console.log(updatedPlayer);
-		// update player textures if they changed state
-		if (playerSprite.currentTextures !== updatedPlayer.currentTextures) {
-			if (updatedPlayer.currentTextures == TEXTURE_NAMES.PRONE) {
-				playerSprite.anchor.set(0.5, 0.1);
-			} else {
-				playerSprite.anchor.set(0.5);
-			}
-			playerSprite.textures = characterTextures[updatedPlayer.charId][updatedPlayer.currentTextures];
-			console.log(updatedPlayer.charId);
-			console.log(updatedPlayer.currentTextures);
-			if (updatedPlayer.currentTextures != TEXTURE_NAMES.JUMPING &&
-				updatedPlayer.currentTextures != TEXTURE_NAMES.PRONE) {
-				console.log("wtafweaf");
-				playerSprite.animationSpeed = ANIMATION_SPEEDS[updatedPlayer.currentTextures];
-				playerSprite.play();
-			}
-			playerSprite.currentTextures = updatedPlayer.currentTextures;
-		}
-		playerContainer.x = updatedPlayer.x;
-		playerContainer.y = updatedPlayer.y;
-		playerSprite.scale.x = updatedPlayer.direction;
-	}
-}
-
-function addPlayer(playerToAdd) {
-	console.log(playerToAdd);
-	console.log("Hey?");
-	let connectionId = playerToAdd.connectionId;
-
-	let newPlayerContainer = createCharacter(playerToAdd.playerName, playerToAdd.charId, characterTextures);
-	mainContainer.menuScenes.multiplayerLobby.addChild(newPlayerContainer);
-	console.log(newPlayerContainer);
-	newPlayerContainer.x = 200;
-	newPlayerContainer.y = -100;
-	// a local property that helps us decide when to change textures
-	newPlayerContainer.player.currentTextures = TEXTURE_NAMES.JUMPING;
-	otherPlayersMap.set(connectionId, newPlayerContainer);
-}
-
 function changeCharacterState(entity, state) {
+	entity.anchor.set(0.5);
+	console.log("WTf");
 	switch (state) {
 		case STATES.STANDING:
 			currentState = STATES.STANDING;
@@ -474,6 +509,7 @@ function changeCharacterState(entity, state) {
 		case STATES.PRONE:
 			currentState = STATES.PRONE;
 			entity.textures = characterTextures[entity.charId].proneTexture;
+			entity.anchor.set(0.5, 0.1);
 			break;
 		case STATES.WALKING:
 			currentState = STATES.WALKING;
@@ -487,12 +523,10 @@ function changeCharacterState(entity, state) {
 			currentState = STATES.JUMPING;
 			entity.textures = characterTextures[entity.charId].jumpTexture;
 			setYVelocity(entity, -8);
-			tick = 0;
 			break;
 		case STATES.FALLING:
 			currentState = STATES.FALLING;
 			entity.textures = characterTextures[entity.charId].jumpTexture;
-			tick = 0;
 			break;
 		case STATES.DISABLED:
 			currentState = STATES.DISABLED;
@@ -511,16 +545,12 @@ function handleJump() {
 	for (let entity of entityGrid[0]) {
 //		console.log(entity.type);
 		if (currentlyCollidingSprites.has(entity)) continue;
-		//if we're going up, ignore all entities (except walls)
-		// HOWEVER, THIS GLITCHES OUT WHEN OUR VELOCITY CHANGES FROM POSITIVE TO NEGATIVE
-		// WHILE COLLIDING WITH AN ENTITY, SINCE WE START CONSIDERING COLLISION
-		// IN THE MIDST OF AN ONGOING COLLISION
-		// solution is to ignore the ones you are currently colliding with!
-		// to do this, we could make a set to check which ones we are currenlty colliding with
-		// at the instant of our positive -> negative y velocity change
-		// we ignore all the ones in the set
+		// if we're going up, ignore all entities (except walls and obstacles)
+		// we also need to record the entities we've ignored so that
+		// the character doesn't glitch out when their velocity
+		// changes from positive to negative while they're in the middle of a sprite
 		if (entity.type !== WALL & entity.type !== OBSTACLE) {
-			if (player.vy < 0 && hitTestRectangle(player, entity) && entity.type !== OBSTACLE) {
+			if (player.vy < 0 && hitTestRectangle(player, entity)) {
 				console.log(entity);
 				currentlyCollidingSprites.add(entity);
 			}
@@ -530,8 +560,6 @@ function handleJump() {
 		let direction = collisionDirection(player, entity, playerContainer);
 		if (!direction) continue;
 		handleCollision(player, playerContainer, entity, direction);
-
-		// console.log((player.y + player.halfHeight) + " " + entity.y);
 		break;
 	}
 	moveCharacterRelatively(playerContainer, player.vx, player.vy);
@@ -545,7 +573,6 @@ function handleJump() {
 }
 
 function handleFall() {
-	let collided = false;
 	for (let entity of entityGrid[0]) {
 		if (currentlyCollidingSprites.has(entity)) continue;
 		if (entity.type === OBSTACLE) continue;
@@ -553,11 +580,9 @@ function handleFall() {
 		//console.log(player.nextFrameY +  " " + player.gy +  " " + entity.y);
 		if (!direction) continue;
 		handleCollision(player, playerContainer, entity, direction);
-		collided = true;
 		console.log((player.gy + player.halfHeight) + " " + entity.y);
 		break;
 	}
-	if (collided) console.log(player.vx + " " + player.vy);
 	moveCharacterRelatively(playerContainer, player.vx, player.vy);
 	moveBackgroundsRelatively(player.vx, player.vy);
 	increaseYVelocity(player, GRAVITY);
@@ -581,8 +606,8 @@ left.press = () => {
 			increaseXVelocity(player, -PLAYER_XVELOCITY);
 			changeCharacterState(player, STATES.WALKING);
 			break;
-		//if you are already walking when the left button was pressed, 
-		//you must've been walking right
+		// if you are already walking when the left button was pressed, 
+		// you must've been walking right
 		case STATES.WALKING:
 			increaseXVelocity(player, -PLAYER_XVELOCITY);
 			changeCharacterState(player, STATES.STANDING);
@@ -592,9 +617,8 @@ left.press = () => {
 		default:
 			break;
 	}
-	//don't flip object if other arrow key is pressed
+	// don't flip object if other arrow key is pressed
 	if (!rightHeldDown) player.scale.x = 1;
-
 };
 
 right.press = () => {
@@ -614,7 +638,7 @@ right.press = () => {
 			break;
 	}
 	//don't flip object if other arrow key is pressed
-	if (!leftHeldDown) player.scale.x = -1;
+	if (!leftHeldDown) horizontallyFlipCharacter(player, -1);
 };
 
 left.release = () => {
@@ -625,7 +649,7 @@ left.release = () => {
 			setXVelocity(player, 0);
 			//flip object back to original orientation
 			if (rightHeldDown) {
-				player.scale.x = -1;
+				horizontallyFlipCharacter(player, -1);
 				changeCharacterState(player, STATES.WALKING);
 				increaseXVelocity(player, PLAYER_XVELOCITY);
 			} else {
@@ -634,7 +658,7 @@ left.release = () => {
 			break;
 		case STATES.JUMPING:
 		case STATES.FALLING:
-			if (rightHeldDown) player.scale.x = -1;
+			if (rightHeldDown) horizontallyFlipCharacter(player, -1);
 			break;
 		default:
 			break;
@@ -682,14 +706,13 @@ jump.release = () => {
 }
 
 down.press = () => {
-	if (currentState !== STATES.STANDING ) return;
-	player.anchor.set(0.5, 0.1);
-	changeCharacterState(player, STATES.PRONE);
+	if (currentState === STATES.STANDING || currentState === STATES.WALKING) {
+			changeCharacterState(player, STATES.PRONE);
+	}
 }
 
 down.release = () => {
 	if (currentState !== STATES.PRONE) return;
-	player.anchor.set(0.5);
 	changeCharacterState(player, STATES.STANDING);
 }
 
@@ -745,7 +768,6 @@ function setYVelocity(entity, velocity) {
 
 function increaseXVelocity(entity, velocity) {
 	entity.vx += velocity;
-	console.log("increase x velocity! " + velocity + " cur Xvelocity: " + entity.vx);
 }
 
 function increaseYVelocity(entity, velocity) {
@@ -757,14 +779,29 @@ function moveCharacterRelatively(entity, x, y) {
 	entity.y += y;
 }
 
+function horizontallyFlipCharacter(entity, x) {
+	entity.scale.x = x;
+}
+
 function moveBackgroundsRelatively(x, y) {
-	for (let bg of movingBackgroundsFar) {
-		bg.x += (-x * BACKGROUND_SCALING_FAR)
-		bg.y += (-y * BACKGROUND_SCALING_FAR);
-	}
-	for (let bg of movingBackgroundsNear) {
-		bg.x += (-x * BACKGROUND_SCALING_NEAR)
-		bg.y += (-y * BACKGROUND_SCALING_NEAR);
+	if (updatedScene === SCENES.JUMP_QUEST_1 || updatedScene === SCENES.JUMP_QUEST_3) {
+		for (let bg of mainContainer[updatedScene].movingBackgroundsFar) {
+			bg.x += (-x * BACKGROUND_SCALING_FAR);
+			bg.y += (-y * BACKGROUND_SCALING_FAR);
+		}
+		for (let bg of mainContainer[updatedScene].movingBackgroundsNear) {
+			bg.x += (-x * BACKGROUND_SCALING_NEAR);
+			bg.y += (-y * BACKGROUND_SCALING_NEAR);
+		}
+	} else {
+		for (let bg of mainContainer[updatedScene].movingBackgroundsFar) {
+			bg.x += (-x * (2 *BACKGROUND_SCALING_FAR));
+			bg.y += (-y * BACKGROUND_SCALING_FAR);
+		}
+		for (let bg of mainContainer[updatedScene].movingBackgroundsNear) {
+			bg.x += (-x * BACKGROUND_SCALING_NEAR);
+			bg.y += (-y * BACKGROUND_SCALING_NEAR);
+		}
 	}
 }
 
@@ -775,28 +812,18 @@ function moveBackgroundsRelatively(x, y) {
 export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 	console.log(direction + " " + currentState);
 
-	/*
-		current problem: jumping onto the top right of a platform
-		it says we collide left, and then collide bottom
-		the problem is that when we collide left, we get nudged
-		towards the right of the platform and then fall naturally again.
-		what we want is for the bottom collision to take priority
-		OR just not get nudged off the platform (Which seems impossible
-		since that's the expected behavior if we get collide left
-		//although I feel like I've already looked into the source code
-		//to try and make bottom collisions take priority...
-	*/
-
-	if (entity.type === OBSTACLE) {
-		console.log(direction);
-		flinchSprite(sprite, spriteContainer, direction);
-		changeCharacterState(sprite, STATES.FALLING);
-		currentlyCollidingSprites.add(entity);
-		return;
-	}
-	if (entity.type === WALL) {
-		handleWallCollision(sprite, spriteContainer, entity);
-		return;
+	switch(entity.type) {
+		case OBSTACLE:
+			console.log(direction);
+			flinchSprite(sprite, direction);
+			changeCharacterState(sprite, STATES.FALLING);
+			currentlyCollidingSprites.add(entity);
+			return;
+		case WALL:
+			handleWallCollision(sprite, spriteContainer, entity);
+			return;
+		default:
+			break;
 	}
 	switch (direction) {
 		case 'top':
@@ -809,7 +836,6 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 			setYVelocity(sprite, 0);
 			spriteContainer.y = entity.y - sprite.halfHeight;
 			//if (sprite.vy < 0) return;
-			console.log(entity.type);
 			switch (entity.type) {
 				case FINAL_PLATFORM:
 					//when reaching the final platform, we don't want to disable the char,
@@ -820,9 +846,8 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 					entity.type = '';
 					break;
 				case TELEPORT_PLATFORM:
-					playerContainer.x = entity.teleportCoordinatesX + player.halfWidth;
-					playerContainer.y = entity.teleportCoordinatesY - player.halfHeight;
-					console.log("Dafuq");
+					spriteContainer.x = entity.teleportCoordinatesX + sprite.halfWidth;
+					spriteContainer.y = entity.teleportCoordinatesY - sprite.halfHeight;
 					break;
 				default:
 					break;
@@ -838,12 +863,10 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 				//changeCharacterState(sprite, STATES.JUMPING);
 			}
 			if (leftHeldDown != rightHeldDown) {
-				console.log("walking");
 				if (leftHeldDown) setXVelocity(sprite, -PLAYER_XVELOCITY);
 				if (rightHeldDown) setXVelocity(sprite, PLAYER_XVELOCITY);
 				changeCharacterState(sprite, STATES.WALKING);
 			} else {
-				console.log("standing");
 				setXVelocity(sprite, 0);
 				changeCharacterState(sprite, STATES.STANDING);
 			}
@@ -863,18 +886,16 @@ export const handleCollision = (sprite, spriteContainer, entity, direction) => {
 	}
 }
 
-function flinchSprite(r1, r1Container, direction) {
+function flinchSprite(r1, direction) {
 	r1.vy = -4;
 	if (direction === "left") {
 		r1.vx = 3;
 	} else {
 		r1.vx = -3;
 	}
-	console.log(r1.vx + " " + r1.vy);
 }
 
 function handleWallCollision(sprite, spriteContainer, entity) {
-	
 	// sprite is on the right of the wall
 	if (spriteContainer.x > (entity.x + entity.width/2)) {
 		spriteContainer.x = entity.x + entity.width + spriteContainer.width/2;
@@ -882,4 +903,60 @@ function handleWallCollision(sprite, spriteContainer, entity) {
 		spriteContainer.x = entity.x - sprite.width/2 + 15;
 	}
 	setXVelocity(sprite, 0);
+}
+
+function setPlayerContainer(newPlayerContainer) {
+	playerContainer = newPlayerContainer;
+	player = newPlayerContainer.player;
+}
+
+function changeScene(newScene) {
+	updatedScene = newScene;
+}
+
+function addChildToViewportContainer(child) {
+	viewportContainer.addChild(child);
+}
+
+function addChildToViewportSorter(child, zIndex = 0) {
+	viewportSorter.addChild(child, zIndex);
+}
+
+function changeAppBackgroundColor(color) {
+	app.renderer.backgroundColor = color;
+}
+
+function addViewportToMainContainer(stage) {
+	console.log("please!");
+	switch (stage) {
+		case 1:
+			mainContainer.jumpQuest1.addChild(viewportContainer, 10);
+			mainContainer.jumpQuest1.sortChildren();
+			break;
+		case 2:
+			mainContainer.jumpQuest2.addChild(viewportContainer, 10);
+			mainContainer.jumpQuest2.sortChildren();
+			break;
+		case 3:
+			mainContainer.jumpQuest3.addChild(viewportContainer, 10);
+			mainContainer.jumpQuest3.sortChildren();
+			break;
+		case 4:
+			mainContainer.jumpQuest3.addChild(viewportContainer, 10);
+			mainContainer.jumpQuest3.sortChildren();
+			break;
+		default:
+			break;
+	}
+}
+
+//also need to export maincontainer
+
+export {
+	setPlayerContainer,
+	addChildToViewportContainer,
+	addChildToViewportSorter,
+	changeAppBackgroundColor,
+	addViewportToMainContainer,
+	changeScene,
 }

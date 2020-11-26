@@ -44,6 +44,11 @@ const jumpQuest1BGM = new Howl({
 	loop: true,
 	onload: () => { filesLoaded++ }
 });
+const jumpQuest2BGM = new Howl({
+	src: [ASSET_PATH + "audio/jumpQuest2.mp3"],
+	loop: true,
+	onload: () => { filesLoaded++ }
+});
 
 const audioContext = {
 	jumpSound,
@@ -53,7 +58,8 @@ const audioContext = {
 	clickRelease,
 	title,
 	lobby,
-	jumpQuest1BGM
+	jumpQuest1BGM,
+	jumpQuest2BGM
 };
 
 export {
@@ -62,4 +68,4 @@ export {
 	totalFiles
 }
 
- // Howler.volume(0);
+  Howler.volume(0);

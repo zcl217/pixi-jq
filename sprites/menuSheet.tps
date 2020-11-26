@@ -70,7 +70,7 @@
             </struct>
         </struct>
         <key>shapePadding</key>
-        <uint>0</uint>
+        <uint>2</uint>
         <key>jpgQuality</key>
         <uint>80</uint>
         <key>pngOptimizationLevel</key>
@@ -84,7 +84,7 @@
         <key>textureFormat</key>
         <enum type="SettingsBase::TextureFormat">png</enum>
         <key>borderPadding</key>
-        <uint>0</uint>
+        <uint>1</uint>
         <key>maxTextureSize</key>
         <QSize>
             <key>width</key>
@@ -181,8 +181,9 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
-            <key type="filename">current spritesheet/backgrounds/easyStage.png</key>
             <key type="filename">current spritesheet/backgrounds/lobby.png</key>
+            <key type="filename">current spritesheet/backgrounds/ludiStage.png</key>
+            <key type="filename">current spritesheet/backgrounds/mushStage.png</key>
             <key type="filename">current spritesheet/menuBackground.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -289,6 +290,7 @@
                 <false/>
             </struct>
             <key type="filename">current spritesheet/buttons/easyMode.png</key>
+            <key type="filename">current spritesheet/buttons/mediumMode.png</key>
             <key type="filename">current spritesheet/buttons/superEasyMode.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -469,6 +471,21 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">current spritesheet/mushStand.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>121,134,241,267</rect>
+                <key>scale9Paddings</key>
+                <rect>121,134,241,267</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">current spritesheet/roomIdStand.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -487,7 +504,6 @@
         </map>
         <key>fileList</key>
         <array>
-            <filename>current spritesheet/backgrounds/easyStage.png</filename>
             <filename>current spritesheet/buttons/OKButton.png</filename>
             <filename>current spritesheet/buttons/OKButtonDown.png</filename>
             <filename>current spritesheet/buttons/back.png</filename>
@@ -510,6 +526,10 @@
             <filename>current spritesheet/buttons/superEasyMode.png</filename>
             <filename>current spritesheet/backgrounds/lobby.png</filename>
             <filename>current spritesheet/roomIdStand.png</filename>
+            <filename>current spritesheet/buttons/mediumMode.png</filename>
+            <filename>current spritesheet/backgrounds/ludiStage.png</filename>
+            <filename>current spritesheet/backgrounds/mushStage.png</filename>
+            <filename>current spritesheet/mushStand.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

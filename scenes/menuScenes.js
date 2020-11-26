@@ -10,16 +10,18 @@ import {
 	TEXTURE_NAMES,
 	SCENES,
 	ASSET_PATH,
+	LOBBY_START_POSITION_X,
+	LOBBY_START_POSITION_Y,
 } from '../constants/constants.js';
+import socketTypes from '../constants/socketTypes.js';
 
 import SContainer from '../scripts/SContainer.js';
 
-import socketTypes from '../constants/socketTypes.js';
 import { createConnection, sock, currentConnectionId } from '../sockClient.js';
 
 import { audioContext } from '../helpers/audio.js';
 import createCharacter from '../helpers/playerCreator.js';
-import createJumpQuest from '../helpers/jumpQuestCreator.js';
+import { changeScene, setPlayerContainer } from '../main.js';
 
 // import { valueStore } from '../';
 
@@ -37,6 +39,7 @@ let BACKGROUNDS = {
 	STAGE1_BG: 'stage1Bg',
 	STAGE2_BG: 'stage2Bg',
 	STAGE3_BG: 'stage3Bg',
+	STAGE4_BG: 'stage4Bg',
 }
 
 const {
@@ -47,7 +50,6 @@ const {
 	Texture,
 	Text,
 	TextInput,
-	TilingSprite
 } = PIXI;
 
 export default createAllMenuScenes;
@@ -58,35 +60,11 @@ let selectedPlayerMode;
 let menuScenes;
 let playerName;
 let playerContainer;
-let mainContainer;
 
-let viewportSorter;
-
-let entityGrid, statusText, loadingAnimation;
+let entityGrid, loadingAnimation;
 
 let menuSheet;
-function createAllMenuScenes(
-	app,
-	loader,
-	characterTextures, 
-	tempObject,
-) {
-
-	// let {
-	// 	player,
-	// 	mainContainer,
-	// 	viewportContainer,
-	// 	viewportSorter,
-	// 	entityGrid
-	// } = tempObject;
-	// let bg;
-    //playerContainer = new Container();
-    mainContainer = tempObject.mainContainer;
-	let viewportContainer = tempObject.viewportContainer;
-	viewportSorter = tempObject.viewportSorter;
-	entityGrid = tempObject.entityGrid;
-	//app = app;
-//	loader = loader;
+function createAllMenuScenes(mainContainer, loader, characterTextures, entityGrid1) {
 
 	menuSheet = loader.resources[ASSET_PATH + "sprites/menuSheet.json"].spritesheet;
 
@@ -96,20 +74,12 @@ function createAllMenuScenes(
 	MAIN_CONTAINER_HEIGHT = menuScenes.height;
     MAIN_CONTAINER_WIDTH = menuScenes.width;
     console.log(MAIN_CONTAINER_HEIGHT + " " + MAIN_CONTAINER_WIDTH);
+	entityGrid = entityGrid1;
 
-	// const stage2Bg = new Sprite(menuSheet.textures['mediumStage.png']);
-	// menuScenes.addChild(stage2Bg, 0);
-	// menuScenes.stage2Bg = stage2Bg;
 console.log(characterTextures);
 	const characterCreationMenu = createCharacterCreationMenu(characterTextures);
 	const modeSelectionMenu = createModeSelectionMenu();
-	const stageSelectionMenu = createStageSelection(
-								app,
-								viewportContainer,
-								viewportSorter,
-								entityGrid,
-								loader
-							);
+	const stageSelectionMenu = createStageSelection(mainContainer);
 
 	const multiplayerMenu = createMultiplayerMenu();
 	const multiplayerLobby = createMultiplayerLobby(loader);
@@ -138,10 +108,16 @@ function generateBackgrounds(menuScenes) {
 	const menuBg = new Sprite(menuSheet.textures['menuBackground.png']);
 	menuScenes.addChild(menuBg, 0);
 	menuScenes[BACKGROUNDS.MENU_BG] = menuBg;
-	const stage1Bg = new Sprite(menuSheet.textures['easyStage.png']);
+	const stage1Bg = new Sprite(menuSheet.textures['ludiStage.png']);
 	menuScenes.addChild(stage1Bg, 0);
 	menuScenes[BACKGROUNDS.STAGE1_BG] = stage1Bg;
 	stage1Bg.visible = false;
+
+	const stage2Bg = new Sprite(menuSheet.textures['mushStage.png']);
+	menuScenes.addChild(stage2Bg, 0);
+	menuScenes[BACKGROUNDS.STAGE2_BG] = stage2Bg;
+	stage2Bg.visible = false;
+
 	const lobbyBg = new Sprite(menuSheet.textures['lobby.png']);
 	menuScenes.addChild(lobbyBg, 0);
 	menuScenes[BACKGROUNDS.LOBBY_BG] = lobbyBg;
@@ -202,7 +178,7 @@ function createCharacterCreationMenu(characterTextures) {
 		playerName = nameField.text ? nameField.text : 'Player';
 		// subtract 1 from charId to account for 0 indexing in arrays
 		playerContainer = createCharacter(playerName, charId - 1, characterTextures);
-		menuScenes.playerContainer = playerContainer;
+		setPlayerContainer(playerContainer);
 	}
 }
 
@@ -219,9 +195,9 @@ function createSelectedCharacterContainer(characterTextures) {
 	selectedCharFrame.alpha = 0.7;
 	selectedCharacter.addChild(selectedCharFrame);
 
-	let currentCharacter = new AnimatedSprite(characterTextures[0].walkingTextures);
+	let currentCharacter = new AnimatedSprite(characterTextures[0].alertTextures);
 	currentCharacter.anchor.set(1);
-	currentCharacter.animationSpeed = ANIMATION_SPEEDS.walkingTextures;
+	currentCharacter.animationSpeed = ANIMATION_SPEEDS.alertTextures;
 	currentCharacter.play();
 	// currentCharacter.x = menuScenes.width - 100;
 	// currentCharacter.y = menuScenes.height/2 + 50;
@@ -275,7 +251,7 @@ function createCharacterSelectionContainer(characterInFrame, characterTextures) 
 		// let the first character be the default selected one
 		if (a === 0) {
 			character = new AnimatedSprite(characterTextures[a].alertTextures);
-			character.animationSpeed = ANIMATION_SPEEDS.walkingTextures;
+			character.animationSpeed = ANIMATION_SPEEDS.alertTextures;
 		} else {
 			character = new AnimatedSprite(characterTextures[a].standingTextures);
 			character.animationSpeed = ANIMATION_SPEEDS.standingTextures;
@@ -328,11 +304,10 @@ function createCharacterSelectionContainer(characterInFrame, characterTextures) 
 		// change currently selected char from standing to walking
 		let currentCharacter = characterContainers[currentCharId - 1].character;
 		let walkingTextures = characterTextures[currentCharId - 1].walkingTextures;
-		changeCharacterTextures(currentCharacter, walkingTextures, TEXTURE_NAMES.WALKING);
-		// change framed character's walking textures
+		let alertTextures = characterTextures[currentCharId - 1].alertTextures;
+		changeCharacterTextures(currentCharacter, alertTextures, TEXTURE_NAMES.ALERT);
+		// change framed character's alert textures
 		changeCharacterTextures(characterInFrame, walkingTextures, TEXTURE_NAMES.WALKING);
-		// characterFrame.x = container.x - container.character.width;
-		// characterFrame.y = container.y - container.character.height/2 - 10;
 		characterFrame.x = characterContainer.x - 75;
 		characterFrame.y = characterContainer.y - 90;
 		selectedCharId = currentCharId;
@@ -455,36 +430,22 @@ function onMultiplayerOut() {
 	this.texture = menuSheet.textures['multiplayerButton.png'];
 }
 
-function createStageSelection(
-	app,
-	viewportContainer,
-	viewportSorter,
-	entityGrid,
-	loader
-) {
+function createStageSelection(mainContainer) {
 	const stageMenu = new Container();
 	let OKButton = new Sprite(menuSheet.textures['OKButton.png']);
 
-	let stage1Button = new Sprite(menuSheet.textures['superEasyMode.png']);
+	let stage1Button = createStageButton(menuSheet, 1, 50, MAIN_CONTAINER_HEIGHT / 3);
 	stageMenu.addChild(stage1Button);
 
-	stage1Button.scale.x = 0.8;
-	stage1Button.scale.y = 0.8;
-	stage1Button.x = 50;
-	stage1Button.y = MAIN_CONTAINER_HEIGHT / 3 - stage1Button.height;
-	stage1Button.interactive = true;
-	console.log(stage1Button.x + " " + stage1Button.y);
-
-	let stage2Button = new Sprite(menuSheet.textures['easyMode.png']);
+	let rightPosition = MAIN_CONTAINER_WIDTH - stage1Button.width - 50;
+	let stage2Button = createStageButton(menuSheet, 2, rightPosition, MAIN_CONTAINER_HEIGHT / 3);
 	stageMenu.addChild(stage2Button);
 
-	stage2Button.scale.x = 0.8;
-	stage2Button.scale.y = 0.8;
-	stage2Button.x = MAIN_CONTAINER_WIDTH - stage2Button.width - 50;
-	stage2Button.y = MAIN_CONTAINER_HEIGHT / 3 - stage2Button.height;
-	stage2Button.interactive = true;
-
-	let stageButtons = [stage1Button, stage2Button];
+	let stage3Button = createStageButton(menuSheet, 3, 50, MAIN_CONTAINER_HEIGHT/1.5);
+	stageMenu.addChild(stage3Button);
+	// stage3Button.y = stage1Button.y + (stage3Button.height * 1.5);
+	
+	let stageButtons = [stage1Button, stage2Button, stage3Button];
 	let selectedStage = 1;
 	stage1Button
 		.on('pointerdown', stageButtonClick)
@@ -495,6 +456,11 @@ function createStageSelection(
 		.on('pointerdown', stageButtonClick)
 		.on('pointerup', () => { onStageSelect(2, stage2Button, stageButtons) })
 		.on('pointerout', onStageButtonOut);
+	
+	stage3Button
+		.on('pointerdown', stageButtonClick)
+		.on('pointerup', () => { onStageSelect(3, stage3Button, stageButtons) })
+		.on('pointerout', onStageButtonOut);
 
 	OKButton
 		.on('pointerdown', OKButtonClick)
@@ -502,7 +468,7 @@ function createStageSelection(
 		.on('pointerout', OKButtonOut);
 
 	OKButton.interactive = true;
-	OKButton.x = 350;
+	OKButton.x = 600;
 	OKButton.y = 350;
 	stageMenu.addChild(OKButton);
 
@@ -510,9 +476,9 @@ function createStageSelection(
 
 	// these functions are in this closure so they can access the 
 	// 'selectedStage' variable
-	function onStageSelect(stage, stage1Button, stageButtons) {
-		stageButtons.forEach((button) => button.alpha = 1);
-		stage1Button.alpha = 0.5;
+	function onStageSelect(stage, currentButton, stageButtons) {
+		stageButtons.forEach((button) => button.alpha = 0.7);
+		currentButton.alpha = 1;
 		selectedStage = stage;
 		audioContext.clickRelease.play();
 		hideAllBackgrounds();
@@ -521,63 +487,79 @@ function createStageSelection(
 				toggleMenuVisibility(BACKGROUNDS.STAGE1_BG, true);
 				break;
 			case 2:
-				//menuScenes.stage2Bg.visible = true;
+				toggleMenuVisibility(BACKGROUNDS.STAGE2_BG, true);
 				break;
 			case 3:
+				toggleMenuVisibility(BACKGROUNDS.STAGE1_BG, true);
+				break;
+			case 4:
 				toggleMenuVisibility(BACKGROUNDS.STAGE2_BG, true);
 				break;
 			default:
-				toggleMenuVisibility(BACKGROUNDS.STAGE3_BG, true);
+				toggleMenuVisibility(BACKGROUNDS.STAGE1_BG, true);
 				break;
 		}
 	}
 
 	function onStageConfirm() {
-		let args = [
-			mainContainer,
-			viewportContainer,
-			loader,
-			viewportSorter,
-			entityGrid,
-			app,
-			audioContext,
-			playerContainer
-		];
+		let currentScene = getCurrentScene();
 		switch (selectedPlayerMode) {
 			case MODES.SINGLE_PLAYER:
-				createJumpQuest(...args, selectedStage);
+				mainContainer.menuScenes.visible = false;
 				break;
 			case MODES.MULTIPLAYER:
-				handleMultiplayerStageConfirm();
+				sock.send(JSON.stringify({
+					type: socketTypes.UPDATE_SCENE,
+					scene: currentScene
+				}));
 				break;
 			default:
 				break;
 		}
 		toggleMenuVisibility(SCENES.STAGE_SELECTION, false);
+		changeScene(currentScene);
 	}
 
-	function handleMultiplayerStageConfirm() {
-		let currentScene;
+	function getCurrentScene() {
 		switch (selectedStage) {
 			case 1:
-				currentScene = SCENES.JUMP_QUEST_1;
-				break;
+				return SCENES.JUMP_QUEST_1;
 			case 2:
-				currentScene = SCENES.JUMP_QUEST_2;
-				break;
+				return SCENES.JUMP_QUEST_2;
 			case 3:
-				currentScene = SCENES.JUMP_QUEST_3;
-				break;
+				return SCENES.JUMP_QUEST_3;
+			case 4:
+				return SCENES.JUMP_QUEST_4;
 			default:
-				currentScene = SCENES.JUMP_QUEST_1;
-				break;
+				return SCENES.JUMP_QUEST_1;
 		}
-		sock.send(JSON.stringify({
-			type: socketTypes.UPDATE_SCENE,
-			scene: currentScene
-		}));
 	}
     
+}
+
+function createStageButton(menuSheet, type, xPosition, yPosition) {
+	let stageButton;
+	switch(type) {
+		case 1:
+			stageButton = new Sprite(menuSheet.textures['superEasyMode.png']);
+			break;
+		case 2:
+			stageButton = new Sprite(menuSheet.textures['easyMode.png']);
+			break;
+		case 3:
+			stageButton = new Sprite(menuSheet.textures['mediumMode.png']);
+			break;
+		default:
+			stageButton = new Sprite(menuSheet.textures['superEasyMode.png']);
+			break;
+	}
+	stageButton.scale.x = 0.8;
+	stageButton.scale.y = 0.8;
+	stageButton.x = xPosition;
+	stageButton.y = yPosition - stageButton.height;
+	stageButton.interactive = true;
+	stageButton.alpha = 0.7;
+	return stageButton;
 }
 
 function stageButtonClick() {
@@ -589,29 +571,12 @@ function stageButtonClick() {
 function hideAllBackgrounds() {
 	toggleMenuVisibility(BACKGROUNDS.MENU_BG, false);
 	toggleMenuVisibility(BACKGROUNDS.STAGE1_BG, false);
-	// toggleMenuVisibility(BACKGROUNDS.STAGE2_BG, false);
+	toggleMenuVisibility(BACKGROUNDS.STAGE2_BG, false);
 	// toggleMenuVisibility(BACKGROUNDS.STAGE3_BG, false);
 }
 
 function onStageButtonOut() {
 	this.cursor = 'default';
-}
-
-function spawnPlayer(mode, playerContainer) {
-	switch (mode) {
-		case LOBBY:
-			addChildToScene(SCENES.MULTIPLAYER_LOBBY, playerContainer);
-			playerContainer.y = -50;
-			playerContainer.x = 550;
-			break;
-		case JUMP_QUEST:
-			playerContainer.y = -50;
-			playerContainer.x = 100;
-			break;
-		default:
-			break;
-	}
-	// changeCharacterState(player, STATES.FALLING);
 }
 
 function generateLobbyBoundaries() {
@@ -641,7 +606,7 @@ function createMultiplayerMenu() {
 	// const createRoom = new Container();
 	// const joinRoom = new Container();
 
-	statusText = new Text('', {
+	const statusText = new Text('', {
         fontFamily: 'Times New Roman',
         fontSize: 40,
         fill: 0x000000,
@@ -653,7 +618,7 @@ function createMultiplayerMenu() {
 	let createRoom = new Sprite(menuSheet.textures['createRoom.png']);
 	createRoom
 		.on('pointerdown', createRoomClick)
-		.on('pointerup', () => { onRoomCreation() })
+		.on('pointerup', () => { onRoomCreation(statusText) })
 		.on('pointerout', createRoomOut);
 
 	createRoom.interactive = true;
@@ -680,7 +645,7 @@ function createMultiplayerMenu() {
 	let joinRoom = new Sprite(menuSheet.textures['joinRoom.png']);
 	joinRoom
 		.on('pointerdown', joinRoomClick)
-		.on('pointerup', () => { onJoinRoom(roomField) } )
+		.on('pointerup', () => { onJoinRoom(roomField, statusText) } )
 		.on('pointerout', joinRoomOut);
 
 	joinRoom.interactive = true;
@@ -698,12 +663,14 @@ function createMultiplayerMenu() {
 }
 
 function createRoomClick() {
-
+	this.texture = menuSheet.textures['createRoomDown.png'];
+	audioContext.click.play();
+	this.cursor = 'click';
 }
 
-function onRoomCreation() {
-	handleStatusText();
-	loadingAnimation = createLoadingAnimationInterval();
+function onRoomCreation(statusText) {
+	handleStatusText(statusText);
+	loadingAnimation = createLoadingAnimationInterval(statusText);
 
 	let createRoom = JSON.stringify({
 		type: socketTypes.CREATE_ROOM,
@@ -729,7 +696,7 @@ function onRoomCreation() {
     }
 }
 
-function handleStatusText() {
+function handleStatusText(statusText) {
 	statusText.text = 'Loading';
 	statusText.style.fill = 0x000000;
 	statusText.visible = true;
@@ -737,7 +704,7 @@ function handleStatusText() {
 	statusText.y = MAIN_CONTAINER_HEIGHT/4 - statusText.height;
 }
 
-function createLoadingAnimationInterval() {
+function createLoadingAnimationInterval(statusText) {
 	let loadingText = statusText.text;
 	let finalLoadingText = 'Loading....';
 	return setInterval(() => {
@@ -748,14 +715,20 @@ function createLoadingAnimationInterval() {
 	}, 300);
 }
 
+function createRoomOut() {
+	this.texture = menuSheet.textures['createRoom.png']
+	this.cursor = 'default';
+}
+
 function handleSuccessfulRoomCreation(roomId) {
-	statusText.visible = false;
 	clearInterval(loadingAnimation);
 	toggleMenuVisibility(SCENES.MULTIPLAYER_MENU, false);
 	toggleMenuVisibility(SCENES.MULTIPLAYER_LOBBY, true);
 	toggleMenuVisibility(BACKGROUNDS.MENU_BG, false);
 	toggleMenuVisibility(BACKGROUNDS.LOBBY_BG, true);
-	spawnPlayer(LOBBY, playerContainer);
+	addChildToScene(SCENES.MULTIPLAYER_LOBBY, playerContainer);
+	playerContainer.x = LOBBY_START_POSITION_X;
+	playerContainer.y = LOBBY_START_POSITION_Y;
 	entityGrid[0] = generateLobbyBoundaries();
 
 	let startButton = new Sprite(menuSheet.textures['start.png']);
@@ -798,17 +771,15 @@ function startOut() {
 	this.cursor = 'default';
 }
 
-function createRoomOut() {
-
-}
-
 function joinRoomClick() {
-
+	this.texture = menuSheet.textures['joinRoomDown.png'];
+	audioContext.click.play();
+	this.cursor = 'click';
 }
 
-async function onJoinRoom(roomField) {
-	handleStatusText();
-	loadingAnimation = createLoadingAnimationInterval();
+async function onJoinRoom(roomField, statusText) {
+	handleStatusText(statusText);
+	loadingAnimation = createLoadingAnimationInterval(statusText);
 
 	let joinRoom = JSON.stringify({
 		type: socketTypes.JOIN_ROOM,
@@ -836,12 +807,13 @@ async function onJoinRoom(roomField) {
 }
 
 function handleSuccessfulJoinRoom(roomId) {
-	statusText.visible = false;
 	toggleMenuVisibility(SCENES.MULTIPLAYER_MENU, false);
 	toggleMenuVisibility(SCENES.MULTIPLAYER_LOBBY, true);
 	toggleMenuVisibility(BACKGROUNDS.MENU_BG, false);
 	toggleMenuVisibility(BACKGROUNDS.LOBBY_BG, true);
-	spawnPlayer(LOBBY, playerContainer);
+	addChildToScene(SCENES.MULTIPLAYER_LOBBY, playerContainer);
+	playerContainer.x = LOBBY_START_POSITION_X;
+	playerContainer.y = LOBBY_START_POSITION_Y;
 	entityGrid[0] = generateLobbyBoundaries();
 	clearInterval(loadingAnimation);
 	setRoomIdNumber(roomId);
@@ -849,7 +821,8 @@ function handleSuccessfulJoinRoom(roomId) {
 }
 
 function joinRoomOut() {
-
+	this.texture = menuSheet.textures['joinRoom.png'];
+	this.cursor = 'default';
 }
 
 function createMultiplayerLobby(loader) {
@@ -870,10 +843,10 @@ function createMultiplayerLobby(loader) {
 		fontWeight: 'bold',
 	});
 	let roomIdContainer = new Container();
-	// let stand = new Sprite(menuSheet.textures['roomIdStand.png']);
-	let stand = new Sprite(loader.resources.roomIdStand.texture);
+	let stand = new Sprite(menuSheet.textures['roomIdStand.png']);
 	stand.scale.x = 0.4;
 	stand.scale.y = 0.4;
+	stand.roundPixels = true;
 	roomIdContainer.addChild(stand);
 	roomIdContainer.addChild(roomIdText);
 	roomIdContainer.addChild(roomIdNumber);
@@ -892,20 +865,6 @@ function createMultiplayerLobby(loader) {
 
 	return multiplayerLobby;
 }
-
-
-
-//we incorporate this into a grid array later
-const stepPositions = [
-	// { x: 50, y: -100},
-	{ x: 150, y: -50 },
-	{ x: 230, y: -110 },
-	// { x: 250, y: -100 },
-	// { x: 300, y: -150 },
-	// { x: 350, y: -150 },
-	// { x: 250, y: -200 },
-	// { x: 400, y: -250 },
-]
 
 function toggleMenuVisibility(target, visible) {
 	menuScenes[target].visible = visible;

@@ -4,12 +4,13 @@ import {
     handleSuccessfulRoomCreation,
     handleSuccessfulJoinRoom
 } from './scenes/menuScenes.js';
+import { changeScene } from './main.js';
 
 let sock;
 let currentConnectionId = '';
-let updatedScene;
 
 let updatedPlayerProperties = [];
+let playersToRemove = [];
 
 let connectionStatus = CONNECTION_STATUS.PENDING;
 
@@ -37,7 +38,7 @@ function addMessageHandlers() {
                 updatedPlayerProperties = message.playerList;
                 break;
             case socketTypes.PLAYER_REMOVED:
-                
+                playersToRemove.push(message.player);
                 break;
             case socketTypes.ROOM_CREATED:
                 handleSuccessfulRoomCreation(message.roomId);
@@ -49,7 +50,7 @@ function addMessageHandlers() {
                 sock.close();
                 break;
             case socketTypes.SCENE_UPDATED:
-                updatedScene = message.scene;
+                changeScene(message.scene);
                 break;
             case socketTypes.INIT:
                 currentConnectionId = message.connectionId;
@@ -75,5 +76,5 @@ export {
     addMessageHandlers,
     connectionStatus,
     updatedPlayerProperties,
-    updatedScene
+    playersToRemove,
 }

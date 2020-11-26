@@ -1,4 +1,5 @@
 const STATES = {
+    ALERT: "ALERT",
     STANDING: "STANDING",
     WALKING: "WALKING",
     JUMPING: "JUMPING",
@@ -7,11 +8,12 @@ const STATES = {
 }
 
 const TEXTURE_NAMES = {
+    ALERT: "alertTextures",
     STANDING: "standingTextures",
     WALKING: "walkingTextures",
     JUMPING: "jumpTexture",
     FALLING: "jumpTexture",
-    PRONE: "proneTexture"
+    PRONE: "proneTexture",
 }
 
 const MODES = {
@@ -28,12 +30,14 @@ let SCENES = {
     JUMP_QUEST_1: 'jumpQuest1',
     JUMP_QUEST_2: 'jumpQuest2',
     JUMP_QUEST_3: 'jumpQuest3',
+    JUMP_QUEST_4: 'jumpQuest4',
 }
 
 const LOBBY = "LOBBY";
 const JUMP_QUEST = "JUMP_QUEST";
 
-const PLAYER_XVELOCITY = 1.7;
+//const PLAYER_XVELOCITY = 1.7;
+const PLAYER_XVELOCITY = 5;
 const PLAYER_HEIGHT_ADJUSTMENT = 0;
 const PLAYER_WIDTH_ADJUSTMENT = 10;
 
@@ -59,6 +63,7 @@ const INVISIBLE = "invisible";
 
 const ANIMATION_SPEEDS = {
     walkingTextures: 0.07,
+    alertTextures: 0.07,
     standingTextures: 0.025
 }
 
@@ -66,19 +71,31 @@ let PLAYABLE_CHARACTERS = [];
 for (let a = 1; a <= 12; a++) PLAYABLE_CHARACTERS.push(a.toString());
 console.log(PLAYABLE_CHARACTERS);
 
-let local = false;
+const LOBBY_START_POSITION_X = 550;
+const LOBBY_START_POSITION_Y = -50;
+
+let local = true;
+let testJq = 1;
 
 let SERVER_URL;
-let START_POSITION_X;
-let START_POSITION_Y;
+let LUDI_START_POSITION_X;
+let LUDI_START_POSITION_Y;
+let MUSH_START_POSITION_X;
+let MUSH_START_POSITION_Y;
 if (local) {
     SERVER_URL = "http://localhost:3333/test";
-    START_POSITION_X = 600;
-    START_POSITION_Y = -1630;
+
+    LUDI_START_POSITION_X = 610;
+    LUDI_START_POSITION_Y = -1730;
+
+    MUSH_START_POSITION_X = 2210;
+    MUSH_START_POSITION_Y = -50;
 } else {
     SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
-    START_POSITION_X = 750;
-    START_POSITION_Y = -300;
+    LUDI_START_POSITION_X = 760;
+    LUDI_START_POSITION_Y = -400;
+    MUSH_START_POSITION_X = 1375;
+    MUSH_START_POSITION_Y = -200;
 }
 
 
@@ -122,6 +139,10 @@ export {
     CONNECTION_STATUS,
     SCENES,
     ASSET_PATH,
-    START_POSITION_Y,
-    START_POSITION_X
+    LUDI_START_POSITION_Y,
+    LUDI_START_POSITION_X,
+    MUSH_START_POSITION_Y,
+    MUSH_START_POSITION_X,
+    LOBBY_START_POSITION_X,
+    LOBBY_START_POSITION_Y,
 };

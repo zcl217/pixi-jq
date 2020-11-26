@@ -2,7 +2,7 @@
 
 "back.png":
 {
-	"frame": {"x":738,"y":113,"w":126,"h":115},
+	"frame": {"x":342,"y":1,"w":126,"h":115},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":126,"h":115},
@@ -10,7 +10,7 @@
 },
 "backDown.png":
 {
-	"frame": {"x":1015,"y":0,"w":126,"h":113},
+	"frame": {"x":470,"y":1,"w":126,"h":113},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":126,"h":113},
@@ -18,7 +18,7 @@
 },
 "createRoom.png":
 {
-	"frame": {"x":864,"y":113,"w":232,"h":115},
+	"frame": {"x":1410,"y":1,"w":232,"h":115},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":232,"h":115},
@@ -26,7 +26,7 @@
 },
 "createRoomDown.png":
 {
-	"frame": {"x":1141,"y":0,"w":232,"h":113},
+	"frame": {"x":1,"y":118,"w":232,"h":113},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":232,"h":113},
@@ -34,7 +34,7 @@
 },
 "cursor.png":
 {
-	"frame": {"x":0,"y":0,"w":24,"h":28},
+	"frame": {"x":1,"y":1,"w":24,"h":28},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":28},
@@ -42,7 +42,7 @@
 },
 "cursorClick.png":
 {
-	"frame": {"x":24,"y":0,"w":30,"h":28},
+	"frame": {"x":58,"y":1,"w":30,"h":28},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":30,"h":28},
@@ -50,7 +50,7 @@
 },
 "cursorHover.png":
 {
-	"frame": {"x":54,"y":0,"w":29,"h":30},
+	"frame": {"x":27,"y":1,"w":29,"h":30},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":29,"h":30},
@@ -58,23 +58,15 @@
 },
 "easyMode.png":
 {
-	"frame": {"x":1380,"y":113,"w":378,"h":143},
+	"frame": {"x":1375,"y":118,"w":378,"h":143},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":378,"h":143},
 	"sourceSize": {"w":378,"h":143}
 },
-"easyStage.png":
-{
-	"frame": {"x":869,"y":256,"w":779,"h":559},
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":779,"h":559},
-	"sourceSize": {"w":779,"h":559}
-},
 "joinRoom.png":
 {
-	"frame": {"x":1373,"y":0,"w":230,"h":113},
+	"frame": {"x":946,"y":1,"w":230,"h":113},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":230,"h":113},
@@ -82,7 +74,7 @@
 },
 "joinRoomDown.png":
 {
-	"frame": {"x":207,"y":0,"w":230,"h":111},
+	"frame": {"x":1178,"y":1,"w":230,"h":111},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":230,"h":111},
@@ -90,15 +82,31 @@
 },
 "lobby.png":
 {
-	"frame": {"x":0,"y":815,"w":779,"h":559},
+	"frame": {"x":1,"y":799,"w":779,"h":559},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":779,"h":559},
 	"sourceSize": {"w":779,"h":559}
 },
+"ludiStage.png":
+{
+	"frame": {"x":782,"y":799,"w":779,"h":559},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":779,"h":559},
+	"sourceSize": {"w":779,"h":559}
+},
+"mediumMode.png":
+{
+	"frame": {"x":1,"y":263,"w":378,"h":143},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":378,"h":143},
+	"sourceSize": {"w":378,"h":143}
+},
 "menuBackground.png":
 {
-	"frame": {"x":779,"y":815,"w":779,"h":559},
+	"frame": {"x":1,"y":1360,"w":779,"h":559},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":779,"h":559},
@@ -106,7 +114,7 @@
 },
 "multiplayerButton.png":
 {
-	"frame": {"x":1096,"y":113,"w":284,"h":115},
+	"frame": {"x":803,"y":118,"w":284,"h":115},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":284,"h":115},
@@ -114,15 +122,31 @@
 },
 "multiplayerButtonDown.png":
 {
-	"frame": {"x":0,"y":113,"w":284,"h":113},
+	"frame": {"x":1089,"y":118,"w":284,"h":113},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":284,"h":113},
 	"sourceSize": {"w":284,"h":113}
 },
+"mushStage.png":
+{
+	"frame": {"x":782,"y":1360,"w":779,"h":559},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":779,"h":559},
+	"sourceSize": {"w":779,"h":559}
+},
+"mushStand.png":
+{
+	"frame": {"x":761,"y":263,"w":482,"h":534},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":482,"h":534},
+	"sourceSize": {"w":482,"h":534}
+},
 "OKButton.png":
 {
-	"frame": {"x":891,"y":0,"w":124,"h":113},
+	"frame": {"x":90,"y":1,"w":124,"h":113},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":113},
@@ -130,7 +154,7 @@
 },
 "OKButtonDown.png":
 {
-	"frame": {"x":83,"y":0,"w":124,"h":111},
+	"frame": {"x":216,"y":1,"w":124,"h":111},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":111},
@@ -138,7 +162,7 @@
 },
 "roomIdStand.png":
 {
-	"frame": {"x":378,"y":256,"w":491,"h":516},
+	"frame": {"x":1245,"y":263,"w":491,"h":516},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":491,"h":516},
@@ -146,7 +170,7 @@
 },
 "singlePlayerButton.png":
 {
-	"frame": {"x":284,"y":113,"w":282,"h":113},
+	"frame": {"x":235,"y":118,"w":282,"h":113},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":282,"h":113},
@@ -154,7 +178,7 @@
 },
 "singlePlayerButtonDown.png":
 {
-	"frame": {"x":437,"y":0,"w":282,"h":111},
+	"frame": {"x":519,"y":118,"w":282,"h":111},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":282,"h":111},
@@ -162,7 +186,7 @@
 },
 "start.png":
 {
-	"frame": {"x":566,"y":113,"w":172,"h":113},
+	"frame": {"x":598,"y":1,"w":172,"h":113},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":172,"h":113},
@@ -170,7 +194,7 @@
 },
 "startDown.png":
 {
-	"frame": {"x":719,"y":0,"w":172,"h":111},
+	"frame": {"x":772,"y":1,"w":172,"h":111},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":172,"h":111},
@@ -178,7 +202,7 @@
 },
 "superEasyMode.png":
 {
-	"frame": {"x":0,"y":256,"w":378,"h":143},
+	"frame": {"x":381,"y":263,"w":378,"h":143},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":378,"h":143},
@@ -189,8 +213,8 @@
 	"version": "1.0",
 	"image": "menuSheet.png",
 	"format": "RGBA8888",
-	"size": {"w":1758,"h":1374},
+	"size": {"w":1754,"h":1920},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:7f2c240ee96e3b95723bd50d08935c0a:d863eb385faa52ef77e99b64130adaee:9ee70c25a364bfcca3f261cfb3faa32a$"
+	"smartupdate": "$TexturePacker:SmartUpdate:e04f139c0115e969bd0d96914d68d0a9:e5124bba5dc7a3105edcd060f6e88871:9ee70c25a364bfcca3f261cfb3faa32a$"
 }
 }

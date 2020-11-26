@@ -2,45 +2,82 @@
 
 
 import { createJumpQuest1Viewport } from '../scenes/jumpQuest1.js';
+import { createJumpQuest2Viewport } from '../scenes/jumpQuest2.js';
+import { createJumpQuest3Viewport } from '../scenes/jumpQuest3.js';
 import { 
     SCENES, 
-    START_POSITION_X, 
-    START_POSITION_Y 
+    LUDI_START_POSITION_Y,
+    LUDI_START_POSITION_X,
+    MUSH_START_POSITION_Y,
+    MUSH_START_POSITION_X,
 } from '../constants/constants.js';
+
+import { 
+    addViewportToMainContainer,
+    addChildToViewportSorter,
+    changeAppBackgroundColor,
+} from '../main.js';
 
 function createJumpQuest(
     mainContainer,
-    viewportContainer,
     loader,
-    viewportSorter,
     entityGrid,
-    app,
     audioContext,
     playerContainer,
     selectedStage,
 ) {
     //reset entitygrid
-    entityGrid[0].length = 0;
+    entityGrid.forEach((grid) => {
+        grid.length = 0;
+    });
     mainContainer.menuScenes.visible = false;
     switch (selectedStage) {
         case 1:
             createJumpQuest1Viewport(
-                mainContainer,
-                viewportContainer,
                 loader,
-                viewportSorter,
                 entityGrid,
             );
-            app.renderer.backgroundColor = 0x3552d2;
+            changeAppBackgroundColor(0x3552d2);
             mainContainer.jumpQuest1.visible = true;
-            mainContainer.currentScene = SCENES.JUMP_QUEST_1;
+            playerContainer.y = LUDI_START_POSITION_Y;
+            playerContainer.x = LUDI_START_POSITION_X;
             setTimeout(() => {
                 audioContext.jumpQuest1BGM.play();
                 audioContext.jumpQuest1BGM.fade(0, 0.3, 3000);
             }, 2000);
             break;
         case 2:
-            //createJumpQuest2();
+            createJumpQuest2Viewport(
+                loader,
+                entityGrid,
+            );
+            changeAppBackgroundColor(0x31a9ff);
+            mainContainer.jumpQuest2.visible = true;
+            playerContainer.y = MUSH_START_POSITION_Y;
+            playerContainer.x = MUSH_START_POSITION_X;
+            setTimeout(() => {
+                audioContext.jumpQuest2BGM.play();
+                audioContext.jumpQuest2BGM.fade(0, 0.3, 3000);
+            }, 2000);
+            break;
+        case 3:
+            createJumpQuest3Viewport(
+                loader,
+                entityGrid,
+            );
+            changeAppBackgroundColor(0x3552d2);
+            mainContainer.jumpQuest3.visible = true;
+            playerContainer.y = LUDI_START_POSITION_Y;
+            playerContainer.x = LUDI_START_POSITION_X;
+            setTimeout(() => {
+                audioContext.jumpQuest1BGM.play();
+                audioContext.jumpQuest1BGM.fade(0, 0.3, 3000);
+            }, 2000);
+            console.log("WTF?!?!");
+            break;
+        case 4:
+            playerContainer.y = MUSH_START_POSITION_Y;
+            playerContainer.x = MUSH_START_POSITION_X;
             break;
         default:
             createJumpQuest1Viewport(
@@ -50,7 +87,7 @@ function createJumpQuest(
                 viewportSorter,
                 entityGrid,
             );
-            app.renderer.backgroundColor = 0x3552d2;
+            changeAppBackgroundColor(0x3552d2);
             mainContainer.jumpQuest1.visible = true;
             break;
     }
@@ -60,12 +97,8 @@ function createJumpQuest(
     if (audioContext.lobby.playing()) {
         audioContext.lobby.fade(1, 0, 3000);
     }
-    playerContainer.y = START_POSITION_Y - 100;
-    playerContainer.x = START_POSITION_X + 10;
-    viewportSorter.addChild(playerContainer, 10);
-    viewportContainer.follow(playerContainer, {
-        radius: 80,
-    });
+    addChildToViewportSorter(playerContainer, 10);
+    addViewportToMainContainer(selectedStage);
     audioContext.startJumpQuest.play();
 }
 

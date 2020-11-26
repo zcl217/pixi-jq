@@ -1,0 +1,153 @@
+{"frames": {
+
+"back.15.png":
+{
+	"frame": {"x":0,"y":459,"w":558,"h":384},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":558,"h":384},
+	"sourceSize": {"w":558,"h":384}
+},
+"castleFar.png":
+{
+	"frame": {"x":560,"y":459,"w":613,"h":477},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":613,"h":477},
+	"sourceSize": {"w":613,"h":477}
+},
+"castleNear1.png":
+{
+	"frame": {"x":1175,"y":459,"w":678,"h":571},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":678,"h":571},
+	"sourceSize": {"w":678,"h":571}
+},
+"floor.png":
+{
+	"frame": {"x":528,"y":0,"w":270,"h":135},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":270,"h":135},
+	"sourceSize": {"w":270,"h":135}
+},
+"jumpQuest2Step1.png":
+{
+	"frame": {"x":153,"y":0,"w":61,"h":57},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":61,"h":57},
+	"sourceSize": {"w":61,"h":57}
+},
+"jumpQuest2Step2.png":
+{
+	"frame": {"x":216,"y":0,"w":58,"h":59},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":58,"h":59},
+	"sourceSize": {"w":58,"h":59}
+},
+"jumpQuest2Step3.png":
+{
+	"frame": {"x":90,"y":0,"w":61,"h":55},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":61,"h":55},
+	"sourceSize": {"w":61,"h":55}
+},
+"jumpQuest2Step4.png":
+{
+	"frame": {"x":276,"y":0,"w":58,"h":59},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":58,"h":59},
+	"sourceSize": {"w":58,"h":59}
+},
+"moon.png":
+{
+	"frame": {"x":800,"y":0,"w":140,"h":140},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":140,"h":140},
+	"sourceSize": {"w":140,"h":140}
+},
+"mountain.png":
+{
+	"frame": {"x":0,"y":142,"w":1126,"h":305},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1126,"h":305},
+	"sourceSize": {"w":1126,"h":305}
+},
+"mushClouds.png":
+{
+	"frame": {"x":0,"y":1032,"w":1280,"h":720},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1280,"h":720},
+	"sourceSize": {"w":1280,"h":720}
+},
+"obstacle1.png":
+{
+	"frame": {"x":0,"y":0,"w":25,"h":26},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":25,"h":26},
+	"sourceSize": {"w":25,"h":26}
+},
+"obstacle2.png":
+{
+	"frame": {"x":27,"y":0,"w":28,"h":28},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":28,"h":28},
+	"sourceSize": {"w":28,"h":28}
+},
+"obstacle3.png":
+{
+	"frame": {"x":57,"y":0,"w":31,"h":28},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":31,"h":28},
+	"sourceSize": {"w":31,"h":28}
+},
+"sign1.png":
+{
+	"frame": {"x":432,"y":0,"w":94,"h":102},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":94,"h":102},
+	"sourceSize": {"w":94,"h":102}
+},
+"sign2.png":
+{
+	"frame": {"x":336,"y":0,"w":94,"h":82},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":94,"h":82},
+	"sourceSize": {"w":94,"h":82}
+},
+"trees.png":
+{
+	"frame": {"x":1128,"y":142,"w":724,"h":315},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":724,"h":315},
+	"sourceSize": {"w":724,"h":315}
+}},
+"animations": {
+	"jumpQuest2Step": ["jumpQuest2Step1.png","jumpQuest2Step2.png","jumpQuest2Step3.png","jumpQuest2Step4.png"],
+	"obstacle": ["obstacle1.png","obstacle2.png","obstacle3.png"],
+	"sign": ["sign1.png","sign2.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "jumpQuest2.png",
+	"format": "RGBA8888",
+	"size": {"w":1853,"h":1752},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:a4edd7048ef8608d00a5e61943a8dde3:477971e3f2f0befbe5f8cedca5fa703b:0c278830c67ecf1977ac36727304bae9$"
+}
+}
