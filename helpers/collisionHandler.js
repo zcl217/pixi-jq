@@ -1,8 +1,20 @@
-import { STATES, OBSTACLE } from '../constants/constants.js';
+import { 
+	PLAYER_XVELOCITY,
+	STATES,
+	OBSTACLE, 
+	WALL, 
+	FINAL_PLATFORM,
+	TELEPORT_PLATFORM
+ } from '../constants/constants.js';
+import { setYVelocity, setXVelocity, setPlayerContainerPosition, getPlayerReachedGoal } from '../main.js';
+import { audioContext } from '../helpers/audio.js';
+import { sock } from '../sockClient.js';
+
+import { leftHeldDown, rightHeldDown, jumpButtonIsHeldDown } from './keyboardHandler.js';
+import socketTypes from '../constants/socketTypes.js';
 
 export const collisionDirection = (
-	r1, r2, r1Container, r1State = undefined,
-	currentlyCollidingSprite = undefined, bounce = false, global = true
+	r1, r2, r1State = undefined, bounce = false, global = true
 ) => {
 
 	if (!r1._bumpPropertiesAdded) addCollisionProperties(r1);
@@ -53,7 +65,7 @@ export const collisionDirection = (
 					//if (r1.vy < 0) return;
 					if (r2.type !== OBSTACLE) {
 						//Move the rectangle out of the collision
-						r1Container.y = r2.y - r1.halfHeight;
+						setPlayerContainerPosition(undefined, r2.y - r1.halfHeight);
 					}
 					
 					// previous equation: r1.nextFrameY - overlapY
@@ -107,8 +119,6 @@ export const collisionDirection = (
 	return collision;
 }
 
-
-
 function calculateCombinedHalfWidths(r1, r2) {
 	return Math.abs(r1.halfWidth) + Math.abs(r2.halfWidth);
 }
@@ -123,6 +133,119 @@ function calculateXVector(r1, r2) {
 
 function calculateYVector(r1, r2) {
 	return (r1.nextFrameY + Math.abs(r1.halfHeight) - r1.yAnchorOffset) - (r2.y + Math.abs(r2.halfHeight) - r2.yAnchorOffset);
+}
+
+// returns the new state of the character
+export const handleCollision = (
+	sprite,
+	entity, 
+	direction, 
+	currentState,
+	currentlyCollidingSprites
+) => {
+	console.log(direction + " " + currentState);
+
+	switch(entity.type) {
+		case OBSTACLE:
+			flinchSprite(sprite, direction);
+			currentlyCollidingSprites.add(entity);
+			return STATES.FALLING;
+		case WALL:
+			handleWallCollision(sprite, entity);
+			return;
+		default:
+			break;
+	}
+	switch (direction) {
+		case 'top':
+			return;
+			setYVelocity(0);
+			return STATES.FALLING;
+			break;
+		case 'bottom':
+			if (currentState === STATES.WALKING) return;
+			setYVelocity(0);
+			setPlayerContainerPosition(undefined, entity.y - sprite.halfHeight);
+			//if (sprite.vy < 0) return;
+			switch (entity.type) {
+				case FINAL_PLATFORM:
+					//when reaching the final platform, we don't want to disable the char,
+					//but create an invisible box where the player can't exit?
+					//changePlayerState(sprite, STATES.DISABLED);
+					//return;
+					if (sock) {
+						if (!getPlayerReachedGoal()) {
+							audioContext.firstPlace.play();
+							sock.send(JSON.stringify({
+								type: socketTypes.REACHED_GOAL,
+							}));
+						} else {
+							audioContext.jumpQuestFinished.play();
+						}
+					} else {
+						audioContext.jumpQuestFinished.play();
+					}
+					entity.type = '';
+					break;
+				case TELEPORT_PLATFORM:
+					let x = entity.teleportCoordinatesX + sprite.halfWidth;
+					let y = entity.teleportCoordinatesY - sprite.halfHeight;
+					setPlayerContainerPosition(x, y);
+					break;
+				default:
+					break;
+			}
+
+			if (jumpButtonIsHeldDown) {
+				// console.log("jumping");
+				// console.log(sprite.y + " " + sprite.vy);
+				// not sure how to fix jump spam when landing on platform
+				//changePlayerState(sprite, STATES.STANDING);
+				
+				//changePlayerState(sprite, STATES.JUMPING);
+			}
+			if (leftHeldDown != rightHeldDown) {
+				if (leftHeldDown) setXVelocity(-PLAYER_XVELOCITY);
+				if (rightHeldDown) setXVelocity(PLAYER_XVELOCITY);
+				return STATES.WALKING;
+			} else {
+				setXVelocity(0);
+				return STATES.STANDING;
+			}
+			break;
+		case 'left':
+			if (currentState !== STATES.WALKING) return;
+			setXVelocity(0);
+			setPlayerContainerPosition(entity.x + entity.width + sprite.width/2, undefined);
+			break;
+		case 'right':
+			if (currentState !== STATES.WALKING) return;
+			setXVelocity(0);
+			setPlayerContainerPosition(entity.x - sprite.width/2 + 15, undefined);
+			break;
+		default:
+			break;
+	}
+}
+
+function flinchSprite(r1, direction) {
+	r1.vy = -4;
+	if (direction === "left") {
+		r1.vx = 3;
+	} else {
+		r1.vx = -3;
+	}
+}
+
+function handleWallCollision(sprite, entity) {
+	let spriteContainer = sprite.parent;
+	// sprite is on the right of the wall
+	if (spriteContainer.x > (entity.x + entity.width/2)) {
+		setPlayerContainerPosition(entity.x + entity.width + spriteContainer.width/2, undefined);
+	} else {
+		setPlayerContainerPosition(entity.x - sprite.width/2 + 15, undefined);
+	}
+	setXVelocity(0);
 }
 
 export const hitTestRectangle = (r1, r2, movingRight = false, global = true) => {

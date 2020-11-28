@@ -1,48 +1,51 @@
-import { STATES, PLAYER_XVELOCITY } from './constants.js';
+import { STATES, PLAYER_XVELOCITY } from '../constants/constants.js';
 
-import { player, changeCharacterState } from './main.js';
-
-
-const currentState = STATES.STANDING;
+import {
+	 changePlayerState,
+	 setXVelocity,
+	 increaseXVelocity,
+	 getCurrentState,
+	 horizontallyFlipCharacter 
+} from '../main.js';
 
 const left = keyboard("ArrowLeft");
 const right = keyboard("ArrowRight");
 const jump = keyboard(" ");
+const down = keyboard("ArrowDown");
 
 let rightHeldDown = false, leftHeldDown = false, jumpButtonIsHeldDown = false;
 left.press = () => {
 	leftHeldDown = true;
-	switch (currentState) {
+	switch (getCurrentState()) {
 		case STATES.STANDING:
-			increaseXVelocity(player, -PLAYER_XVELOCITY);
-			changeCharacterState(player, STATES.WALKING);
+			increaseXVelocity(-PLAYER_XVELOCITY);
+			changePlayerState(STATES.WALKING);
 			break;
-		//if you are already walking when the left button was pressed, 
-		//you must've been walking right
+		// if you are already walking when the left button was pressed, 
+		// you must've been walking right
 		case STATES.WALKING:
-			increaseXVelocity(player, -PLAYER_XVELOCITY);
-			changeCharacterState(player, STATES.STANDING);
+			increaseXVelocity(-PLAYER_XVELOCITY);
+			changePlayerState(STATES.STANDING);
 			break;
 		case STATES.DISABLED:
 			return;
 		default:
 			break;
 	}
-	//don't flip object if other arrow key is pressed
-	if (!rightHeldDown) player.scale.x = 1;
-
+	// don't flip object if other arrow key is pressed
+	if (!rightHeldDown) horizontallyFlipCharacter(1);
 };
 
 right.press = () => {
 	rightHeldDown = true;
-	switch (currentState) {
+	switch (getCurrentState()) {
 		case STATES.STANDING:
-			increaseXVelocity(player, PLAYER_XVELOCITY);
-			changeCharacterState(player, STATES.WALKING);
+			increaseXVelocity(PLAYER_XVELOCITY);
+			changePlayerState(STATES.WALKING);
 			break;
 		case STATES.WALKING:
-			increaseXVelocity(player, PLAYER_XVELOCITY);
-			changeCharacterState(player, STATES.STANDING);
+			increaseXVelocity(PLAYER_XVELOCITY);
+			changePlayerState(STATES.STANDING);
 			break;
 		case STATES.DISABLED:
 			return;
@@ -50,27 +53,27 @@ right.press = () => {
 			break;
 	}
 	//don't flip object if other arrow key is pressed
-	if (!leftHeldDown) player.scale.x = -1;
+	if (!leftHeldDown) horizontallyFlipCharacter(-1);
 };
 
 left.release = () => {
 	leftHeldDown = false;
-	switch (currentState) {
+	switch (getCurrentState()) {
 		case STATES.STANDING:
 		case STATES.WALKING:
-			setXVelocity(player, 0);
+			setXVelocity(0);
 			//flip object back to original orientation
 			if (rightHeldDown) {
-				player.scale.x = -1;
-				changeCharacterState(player, STATES.WALKING);
-				increaseXVelocity(player, PLAYER_XVELOCITY);
+				horizontallyFlipCharacter(-1);
+				changePlayerState(STATES.WALKING);
+				increaseXVelocity(PLAYER_XVELOCITY);
 			} else {
-				changeCharacterState(player, STATES.STANDING);
+				changePlayerState(STATES.STANDING);
 			}
 			break;
 		case STATES.JUMPING:
 		case STATES.FALLING:
-			if (rightHeldDown) player.scale.x = -1;
+			if (rightHeldDown) horizontallyFlipCharacter(-1);
 			break;
 		default:
 			break;
@@ -78,22 +81,22 @@ left.release = () => {
 }
 right.release = () => {
 	rightHeldDown = false;
-	switch (currentState) {
+	switch (getCurrentState()) {
 		case STATES.STANDING:
 		case STATES.WALKING:
-			setXVelocity(player, 0);
+			setXVelocity(0);
 			//flip object back to original orientation
 			if (leftHeldDown) {
-				player.scale.x = 1;
-				changeCharacterState(player, STATES.WALKING);
-				increaseXVelocity(player, -PLAYER_XVELOCITY);
+				horizontallyFlipCharacter(1);
+				changePlayerState(STATES.WALKING);
+				increaseXVelocity(-PLAYER_XVELOCITY);
 			} else {
-				changeCharacterState(player, STATES.STANDING);
+				changePlayerState(STATES.STANDING);
 			}
 			break;
 		case STATES.JUMPING:
 		case STATES.FALLING:
-			if (leftHeldDown) player.scale.x = 1;
+			if (leftHeldDown) horizontallyFlipCharacter(1);
 			break;
 		default:
 			break;
@@ -101,7 +104,7 @@ right.release = () => {
 }
 
 jump.press = () => {
-	switch (currentState) {
+	switch (getCurrentState()) {
 		case STATES.JUMPING:
 		case STATES.FALLING:
 		case STATES.DISABLED:
@@ -109,12 +112,23 @@ jump.press = () => {
 		default:
 			break;
 	}
-	changeCharacterState(player, STATES.JUMPING);
+	changePlayerState(STATES.JUMPING);
 	jumpButtonIsHeldDown = true;
 };
 
 jump.release = () => {
 	jumpButtonIsHeldDown = false;
+}
+
+down.press = () => {
+	if (getCurrentState() === STATES.STANDING || getCurrentState() === STATES.WALKING) {
+			changePlayerState(STATES.PRONE);
+	}
+}
+
+down.release = () => {
+	if (getCurrentState() !== STATES.PRONE) return;
+	changePlayerState(STATES.STANDING);
 }
 
 function keyboard(value) {
@@ -157,15 +171,6 @@ function keyboard(value) {
 		window.removeEventListener("keyup", upListener);
 	};
 	return key;
-}
-
-function increaseXVelocity(entity, velocity) {
-	entity.vx += velocity;
-	console.log("increase x velocity! " + velocity + " cur Xvelocity: " + entity.vx);
-}
-
-function setXVelocity(entity, velocity) {
-	entity.vx = velocity;
 }
 
 export {

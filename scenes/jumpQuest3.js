@@ -131,7 +131,7 @@ function generateCheckpoints(jumpQuestSheet) {
 }
 
 function generateSteps(entityGrid, jumpQuestSheet) {
-	let stepPositions = generateStepPositions2();
+	let stepPositions = generateStepPositions();
 	let steps = [];
 	for (let position of stepPositions) {
 		let step = new Sprite(jumpQuestSheet.textures['jumpQuest1Step.png']);
@@ -146,68 +146,9 @@ function generateSteps(entityGrid, jumpQuestSheet) {
 	return steps;
 }
 
-function generateStepPositions() {
-	let x = 150;
-	let y = -50;
-	let steps = [];
-	for (let a = 0; a < 4; a++) {
-		steps.push({
-			x,
-			y
-		});
-		x += NEXT_STEP_X;
-		y -= NEXT_STEP_Y;
-	} 
-	for (let a = 0; a < 2; a++) {
-		steps.push({
-			x,
-			y
-		});
-		y -= NEXT_STEP_Y;
-	} 
-	for (let a = 0; a < 3; a++) {
-		steps.push({
-			x,
-			y
-		});
-		x -= NEXT_STEP_X;
-		y -= NEXT_STEP_Y;
-	}
-	x += NEXT_STEP_X;
-	console.log(x);
-	// push an obstacle at this current y position
-	for (let a = 0; a < 5; a++) {
-		steps.push({
-			x,
-			y
-		});
-		x += NEXT_STEP_X;
-	}
-	console.log(x);
-	x -= NEXT_STEP_X;
-	y -= NEXT_STEP_Y;
-	for (let a = 0; a < 2; a++) {
-		steps.push({
-			x,
-			y
-		});
-		x -= NEXT_STEP_X;
-		y -= NEXT_STEP_Y;
-	}
-	// push a flag on the current x and y coordinates
-	steps.push({
-		x,
-		y,
-		type: FINAL_PLATFORM
-	});
-	
-	// NEXT_STEP_Y *= -1;
-	return steps;
-}
-
 let initialStepX = 300;
 let finalX, finalY;
-function generateStepPositions2() {
+function generateStepPositions() {
 	let x = initialStepX;
 	let y = -50;
 	let steps = [];
@@ -279,6 +220,17 @@ function generateStepPositions2() {
 	
 	let teleportX = x;
 	let teleportY = y - (NEXT_STEP_Y * 2);
+	
+	obstacles[0].boundaryRight = teleportX + NEXT_STEP_X * 2;
+	obstacles[0].x = teleportX - NEXT_STEP_X * 5;
+	obstacles[0].y = teleportY;
+	obstacles[1].boundaryRight = teleportX + NEXT_STEP_X;
+	obstacles[1].x = teleportX - NEXT_STEP_X * 3;
+	obstacles[1].y = teleportY + NEXT_STEP_Y / 2.5;
+
+	obstacles[2].boundaryRight = teleportX + NEXT_STEP_X / 2;
+	obstacles[2].x = teleportX - NEXT_STEP_X;
+	obstacles[2].y = teleportY + NEXT_STEP_Y * 2.5;
 
 	steps.push({
 		x,
@@ -302,6 +254,10 @@ function generateStepPositions2() {
 		}
 		x -= NEXT_STEP_X;
 	}
+
+	obstacles[0].boundaryLeft = x - NEXT_STEP_X;
+	obstacles[1].boundaryLeft = x - NEXT_STEP_X;
+	obstacles[2].boundaryLeft = x - NEXT_STEP_X;
 	y -= NEXT_STEP_Y;
 
 	steps.push({
@@ -367,86 +323,97 @@ function generateRandomTeleportStep(x, y, teleportX, teleportY, randomBlock) {
 //
 // x: 250, 
 // y: -590,
+let obstacles = [
+	{
+		x: 0, 
+		y: 0,
+		vx: 3,
+		vy: 0,
+		boundaryLeft: 0,
+		boundaryRight: 0,
+		movementType: HORIZONTAL,
+		type: OBSTACLE,
+		rotate: true
+	},
+	{
+		x: 0, 
+		y: 0,
+		vx: 3,
+		vy: 0,
+		boundaryLeft: 0,
+		boundaryRight: 0,
+		movementType: HORIZONTAL,
+		type: OBSTACLE,
+		rotate: true
+	},
+	{
+		x: 0, 
+		y: 0,
+		vx: 3,
+		vy: 0,
+		boundaryLeft: 0,
+		boundaryRight: 0,
+		movementType: HORIZONTAL,
+		type: OBSTACLE,
+		rotate: true
+	},
+	{
+		x: initialStepX, 
+		y: -950,
+		vx: 3,
+		vy: 0,
+		boundaryLeft: initialStepX - 260,
+		boundaryRight: initialStepX + 325,
+		movementType: HORIZONTAL,
+		type: OBSTACLE,
+		rotate: true
+	},
+	{
+		x: initialStepX, 
+		y: -950,
+		vx: 3,
+		vy: 0,
+		boundaryLeft: initialStepX - 260,
+		boundaryRight: initialStepX + 325,
+		movementType: HORIZONTAL,
+		type: OBSTACLE,
+		rotate: true
+	},
+	{
+		x: initialStepX + 300, 
+		y: -1070,
+		vx: 3,
+		vy: 0,
+		boundaryLeft: initialStepX - 260,
+		boundaryRight: initialStepX + 325,
+		movementType: HORIZONTAL,
+		type: OBSTACLE,
+		rotate: true
+	},
+	{
+		x: initialStepX + 50, 
+		y: -1070,
+		vx: 0,
+		vy: 2,
+		boundaryLeft: -1400,
+		boundaryRight: -700,
+		movementType: VERTICAL,
+		type: OBSTACLE,
+		rotate: true
+	},
+	{
+		x: initialStepX - 10, 
+		y: -1400,
+		vx: 0,
+		vy: 15,
+		boundaryLeft: -1900,
+		boundaryRight: -1300,
+		movementType: VERTICAL,
+		type: OBSTACLE,
+		rotate: true
+	}
+];
 function generateObstacles(jumpQuestSheet) {
-	let obstacles = [
-		// {
-		// 	x: 300, 
-		// 	y: -620,
-		// 	vx: 3,
-		// 	vy: 0,
-		// 	boundary1: 300,
-		// 	boundary2: 850,
-		// 	movementType: HORIZONTAL,
-		// 	type: OBSTACLE,
-		// 	rotate: true
-		// },
-		{
-			x: initialStepX, 
-			y: -950,
-			vx: 3,
-			vy: 0,
-			boundary1: initialStepX - 260,
-			boundary2: initialStepX + 325,
-			movementType: HORIZONTAL,
-			type: OBSTACLE,
-			rotate: true
-		},
-		{
-			x: initialStepX, 
-			y: -950,
-			vx: 3,
-			vy: 0,
-			boundary1: initialStepX - 260,
-			boundary2: initialStepX + 325,
-			movementType: HORIZONTAL,
-			type: OBSTACLE,
-			rotate: true
-		},
-		// {
-		// 	x: initialStepX - 260, 
-		// 	y: -1070,
-		// 	vx: 6,
-		// 	vy: 0,
-		// 	boundary1: initialStepX - 260,
-		// 	boundary2: initialStepX + 325,
-		// 	movementType: HORIZONTAL,
-		// 	type: OBSTACLE,
-		// 	rotate: true
-		// },
-		{
-			x: initialStepX + 300, 
-			y: -1070,
-			vx: 3,
-			vy: 0,
-			boundary1: initialStepX - 260,
-			boundary2: initialStepX + 325,
-			movementType: HORIZONTAL,
-			type: OBSTACLE,
-			rotate: true
-		},
-		{
-			x: initialStepX + 50, 
-			y: -1070,
-			vx: 0,
-			vy: 2,
-			boundary1: -1400,
-			boundary2: -700,
-			movementType: VERTICAL,
-			type: OBSTACLE,
-			rotate: true
-		},
-		{
-			x: initialStepX - 10, 
-			y: -1400,
-			vx: 0,
-			vy: 15,
-			boundary1: -1900,
-			boundary2: -1300,
-			movementType: VERTICAL,
-			type: OBSTACLE,
-			rotate: true
-		}
-	];
 	let obstacleSprites = [];
 	for (let obstacleData of obstacles) {
 		let obstacle = new Sprite(jumpQuestSheet.textures['obstacle.png']);

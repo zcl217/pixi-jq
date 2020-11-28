@@ -1,11 +1,9 @@
 // / @ts-check
 import {
 	STATES,
-	PLAYER_XVELOCITY,
 	BACKGROUND_SCALING_FAR,
 	BACKGROUND_SCALING_NEAR,
 	TERMINAL_VELOCITY,
-	FINAL_PLATFORM,
 	OBSTACLE,
 	HORIZONTAL,
 	VERTICAL,
@@ -17,7 +15,9 @@ import {
 	ANIMATION_SPEEDS,
 	SCENES,
 	ASSET_PATH,
-	TELEPORT_PLATFORM
+	LOBBY_START_POSITION_X,
+	LOBBY_START_POSITION_Y,
+	TIME_REMAINING,
 } from './constants/constants.js';
 import socketTypes from './constants/socketTypes.js';
 
@@ -26,24 +26,25 @@ import {
 	connectionStatus,
 	updatedPlayerProperties,
 	currentConnectionId,
-	playersToRemove
+	playersToRemove,
 } from './sockClient.js';
 
 import SContainer from './scripts/SContainer.js';
 
-import createAllMenuScenes from './scenes/menuScenes.js';
+import { createAllMenuScenes, generateLobbyBoundaries } from './scenes/menuScenes.js';
 import { createJumpQuest1Scene } from './scenes/jumpQuest1.js';
 import { createJumpQuest2Scene } from './scenes/jumpQuest2.js';
 import { createJumpQuest3Scene } from './scenes/jumpQuest3.js';
+import { createJumpQuest4Scene } from './scenes/jumpQuest4.js';
 
 import {
 	collisionDirection,
-	platformCollision,
+	handleCollision,
 	hitTestRectangle
 } from './helpers/collisionHandler.js';
 import { audioContext } from '../helpers/audio.js';
 import createCharacter from '../helpers/playerCreator.js';
-import createJumpQuest from './helpers/jumpQuestCreator.js';
+import { createJumpQuest } from './helpers/jumpQuestCreator.js';
 
 let type = "WebGL";
 if (!PIXI.utils.isWebGLSupported()) {
@@ -79,10 +80,10 @@ const viewportContainer = new Viewport.Viewport({
 const viewportSorter = new SContainer();
 viewportContainer.addChild(viewportSorter);
 
-// viewportContainer.clampZoom({
-//   maxWidth: 2000,
-//   maxHeight: 500
-// });
+viewportContainer.clampZoom({
+  maxWidth: 2000,
+  maxHeight: 1000
+});
 
 window.addEventListener('resize', () => {
 	app.renderer.resize(window.innerWidth, window.innerHeight);
@@ -136,12 +137,15 @@ let entityGrid = [[]], obstacleList = [];
 
 let otherPlayersMap = new Map();
 
+let playerReachedGoal = false;
+let timeRemaining = TIME_REMAINING;
+
 function setup() {
 	console.log(app.renderer.type);
 	//app.stage.viewportContainer.visible = false;
 	initializeCharacterTextures();
 	initializeScenes();
-	app.renderer.backgroundColor = 0x000000;
+	changeAppBackgroundColor(0x000000);
 	audioContext.title.play();
 	app.ticker.add(delta => gameLoop(delta));
 }
@@ -170,22 +174,23 @@ function initializeScenes() {
 	let jumpQuest1 = createJumpQuest1Scene(loader);
 	let jumpQuest2 = createJumpQuest2Scene(loader);
 	let jumpQuest3 = createJumpQuest3Scene(loader);
-	// let jumpQuest4 = createJumpQuest4Scene(loader);
+	let jumpQuest4 = createJumpQuest4Scene(loader);
 	let menuScenes = createAllMenuScenes(
 		mainContainer,
 		loader,
 		characterTextures, 
 		entityGrid
 	);
-	console.log(jumpQuest1);
 	mainContainer.addChild(menuScenes);
 	mainContainer.addChild(jumpQuest1);
 	mainContainer.addChild(jumpQuest2);
 	mainContainer.addChild(jumpQuest3);
+	mainContainer.addChild(jumpQuest4);
 	mainContainer.menuScenes = menuScenes;
 	mainContainer.jumpQuest1 = jumpQuest1;
 	mainContainer.jumpQuest2 = jumpQuest2;
 	mainContainer.jumpQuest3 = jumpQuest3;
+	mainContainer.jumpQuest4 = jumpQuest4;
 
 	menuScenes.x = app.screen.width/2 - menuScenes.width/2;
 	menuScenes.y = app.screen.height/2 - menuScenes.height/2;
@@ -194,6 +199,7 @@ function initializeScenes() {
 	mainContainer.jumpQuest1.visible = false;
 	mainContainer.jumpQuest2.visible = false;
 	mainContainer.jumpQuest3.visible = false;
+	mainContainer.jumpQuest4.visible = false;
 }
 
 function gameLoop(delta) {
@@ -213,12 +219,15 @@ function gameLoop(delta) {
 	// if multiplayer mode, update other players
 	if (sock) {
 		handleMultiplayer();
-	}
+	}	
 	player.nextFrameX = playerContainer.x + player.vx;
 	player.nextFrameY = playerContainer.y + player.vy;
 	handlePlayerState();
-	handleClouds();
-	handleObstacleMovement(delta);
+	if (updatedScene && updatedScene !== SCENES.MULTIPLAYER_LOBBY) {
+		handleClouds();
+		handleObstacleMovement(delta);
+		handleTimerPositioning();
+	}
 }
 
 function shouldRender(mainContainer) {
@@ -230,10 +239,7 @@ function handleScene() {
 	if (mainContainer.currentScene !== updatedScene) {
 		console.log(mainContainer.currentScene + " " + updatedScene);
 		mainContainer.currentScene = updatedScene;
-		viewportContainer.follow(playerContainer, {
-			radius: 80,
-		});
-		changeCharacterState(player, STATES.FALLING);
+		resetValues();
 		// I think we have to also clear the players in viewport sorter, or 
 		// find a way to only add new players in them once and never do that again
 		// before adding them again. not sure how we will handle
@@ -270,35 +276,64 @@ function handleScene() {
 				createJumpQuest(...args, 4);
 				handleJumpQuestSceneChange(4);
 				break;
-			case SCENES.LOBBY:
-				mainContainer.jumpQuest1.visible = false;
-				mainContainer.jumpQuest2.visible = false;
-				mainContainer.jumpQuest3.visible = false;
-				mainContainer.jumpQuest4.visible = false;
-				mainContainer.menuScenes.multiplayerLobby.visible = true;
-				// transferPlayersToNewScene(mainContainer.menuScenes.multiplayerLobby);
+			case SCENES.MULTIPLAYER_LOBBY:
+				handleMultiplayerSceneChange();
 				break;
 			default:
 				break;
 		}
+		viewportContainer.follow(playerContainer, {
+			radius: 80,
+		});
+		changePlayerState(STATES.FALLING);
 	}
 }
 
+function resetValues() {
+	viewportSorter.removeChildren();
+	//reset entitygrid
+	entityGrid.forEach((grid) => {
+		grid.length = 0;
+	});
+	timeRemaining = TIME_REMAINING;
+	playerReachedGoal = false;
+}
+
 function handleJumpQuestSceneChange(sceneNumber) {
-	// transferPlayersToNewScene(viewportSorter);
+	transferPlayersToNewScene(viewportSorter);
 	let currentJumpQuest = 'jumpQuest' + sceneNumber;
-	console.log(mainContainer[currentJumpQuest]);
-	console.log(currentJumpQuest);
 	entityGrid.forEach((grid) => {
 		obstacleList.push(...grid.filter((entity) => entity.type === OBSTACLE));
 	});
 	obstacleList.forEach((obstacle) => {
 		viewportSorter.addChild(obstacle, 5);
 	});
-	console.log(obstacleList);
+	// // the first child is the start button if you're the host, so don't remove it
+	// if (getIsHost()) {
+	// 	mainContainer.menuScenes.multiplayerLobby.removeChildren(1);
+	// } else {
+	// 	mainContainer.menuScenes.multiplayerLobby.removeChildren();
+	// }
+}
+
+function handleMultiplayerSceneChange() {
+	//mainContainer.jumpQuest4.visible = false;
+	mainContainer.menuScenes.visible = true;
+	//mainContainer.menuScenes.multiplayerLobby.visible = true;
+	entityGrid[0] = generateLobbyBoundaries();
+	transferPlayersToNewScene(mainContainer.menuScenes.multiplayerLobby);
+	mainContainer.menuScenes.multiplayerLobby.addChild(playerContainer);
+	playerContainer.x = LOBBY_START_POSITION_X;
+	playerContainer.y = LOBBY_START_POSITION_Y;
+	handleBGMTransition();
+	changeAppBackgroundColor(0x000000);
+	// it's important to removeChildren here or else memory isn't released
+	// (I guess a reference of some sort still exists)
+	hideJumpQuestScenes();
 }
 
 function transferPlayersToNewScene(container) {
+	console.log(container);
 	console.log("Transferring players.");
 	otherPlayersMap.forEach((player, connectionId) => {
 		console.log(currentConnectionId + " " + connectionId);
@@ -308,6 +343,44 @@ function transferPlayersToNewScene(container) {
 			container.addChild(player);
 		}
 	});
+}
+
+function handleBGMTransition() {
+	if (audioContext.title.playing()) {
+		audioContext.title.fade(0.3, 0, 2000);
+        setTimeout(() => {
+            audioContext.title.stop();
+        }, 3000);
+	}
+	if (audioContext.jumpQuest1BGM.playing()) {
+		audioContext.jumpQuest1BGM.fade(0.3, 0, 2000);
+		setTimeout(() => {
+			audioContext.jumpQuest1BGM.rate(1);
+			audioContext.jumpQuest1BGM.stop();
+		}, 3000);
+	}
+	if (audioContext.jumpQuest2BGM.playing()) {
+		audioContext.jumpQuest2BGM.fade(0.3, 0, 2000);
+		setTimeout(() => {
+			audioContext.jumpQuest2BGM.rate(1);
+			audioContext.jumpQuest2BGM.stop();
+		}, 3000);
+	}
+	setTimeout(() => {
+		audioContext.lobby.play();
+		audioContext.lobby.fade(0, 0.3, 2000);
+	}, 2000);
+}
+
+function hideJumpQuestScenes() {
+	mainContainer.jumpQuest1.removeChildren();
+	mainContainer.jumpQuest2.removeChildren();
+	mainContainer.jumpQuest3.removeChildren();
+	mainContainer.jumpQuest4.removeChildren();
+	mainContainer.jumpQuest1.visible = false;
+	mainContainer.jumpQuest2.visible = false;
+	mainContainer.jumpQuest3.visible = false;
+	mainContainer.jumpQuest4.visible = false;
 }
 
 function handleMultiplayer() {
@@ -328,11 +401,14 @@ function handleMultiplayer() {
 
 function handleOtherPlayers() {
 	while (playersToRemove.length > 0) {
-		let id = playersToRemove.pop().connectionId;
+		console.log("Removing player");
+		let id = playersToRemove.pop();
 		let playerToRemove = otherPlayersMap.get(id);
-		playerToRemove.destroy();
-		otherPlayersMap.delete(id);
-		removePlayerFromContainers(id);
+		if (playerToRemove) {
+			playerToRemove.destroy();
+			otherPlayersMap.delete(id);
+			removePlayerFromContainers(id);
+		}
 	}
 	for (let a = 0; a < updatedPlayerProperties.length; a++) {
 		let updatedPlayer = updatedPlayerProperties[a];
@@ -344,22 +420,22 @@ function handleOtherPlayers() {
 			addPlayer(updatedPlayer);
 			continue;
 		}
-		let playerContainer = otherPlayersMap.get(updatedPlayer.connectionId);
-		let playerSprite = playerContainer.player;
+		let otherPlayerContainer = otherPlayersMap.get(updatedPlayer.connectionId);
+		let playerSprite = otherPlayerContainer.player;
 	//	console.log(updatedPlayer);
 		// update player textures if they changed state
 		if (playerSprite.currentTextures !== updatedPlayer.currentTextures) {
 			updateOtherPlayerTextures(updatedPlayer, playerSprite);
 		}
-		playerContainer.x = updatedPlayer.x;
-		playerContainer.y = updatedPlayer.y;
+		otherPlayerContainer.x = updatedPlayer.x;
+		otherPlayerContainer.y = updatedPlayer.y;
 		playerSprite.scale.x = updatedPlayer.direction;
 	}
 }
 
 function removePlayerFromContainers(id) {
 	for (let a = 0; a < viewportSorter.children.length; a++) {
-		if (viewportSorter[a].connectionId === id) {
+		if (viewportSorter[a]?.connectionId === id) {
 			viewportSorter.splice(a, 1);
 			break;
 		}
@@ -391,13 +467,11 @@ function updateOtherPlayerTextures(updatedPlayer, playerSprite) {
 }
 
 function addPlayer(playerToAdd) {
-	console.log(playerToAdd);
-	console.log("Hey?");
+	console.log("Adding player");
 	let connectionId = playerToAdd.connectionId;
-
 	let newPlayerContainer = createCharacter(playerToAdd.playerName, playerToAdd.charId, characterTextures);
 	mainContainer.menuScenes.multiplayerLobby.addChild(newPlayerContainer);
-	viewportSorter.addChild(newPlayerContainer);
+	//viewportSorter.addChild(newPlayerContainer);
 	newPlayerContainer.x = 200;
 	newPlayerContainer.y = -100;
 	// a local property that helps us decide when to change textures
@@ -414,7 +488,7 @@ function handlePlayerState() {
 			for (let entity of obstacleList) checkForObstacleCollisions(entity);
 			break;
 		case STATES.WALKING:
-			moveCharacterRelatively(playerContainer, player.vx, 0);
+			movePlayerContainerRelatively(player.vx, 0);
 			moveBackgroundsRelatively(player.vx, 0);
 			//check if on platform, if not then change to falling state
 			let onPlatform = false;
@@ -423,24 +497,26 @@ function handlePlayerState() {
 				//	console.log(entity.x + " " + entity.width + " " + playerContainer.x);
 				}
 				//console.log(entity.type);
-				let direction = collisionDirection(player, entity, playerContainer);
+				let direction = collisionDirection(player, entity);
 				if (!direction) continue;
 				switch(entity.type) {
-					case OBSTACLE:
+					case OBSTACLE: {
 						onPlatform = false;
-						handleCollision(player, playerContainer, entity, direction);
+						let newState = handleCollision(player, entity, direction, currentState, currentlyCollidingSprites);
+						changePlayerState(newState);
 						break;
-					case WALL:
-						console.log(entity.type);
-						handleCollision(player, playerContainer, entity, direction);
+					}
+					case WALL: {
+						let newState = handleCollision(player, entity, direction, currentState, currentlyCollidingSprites);
+						changePlayerState(newState);
 						break;
+					}
 					default:
 						if (direction === "bottom") onPlatform = true;
 						break;
 				}
 			}
-			console.log(onPlatform);
-			if (!onPlatform) changeCharacterState(player, STATES.FALLING);
+			if (!onPlatform) changePlayerState(STATES.FALLING);
 			break;
 		case STATES.JUMPING:
 			handleJump();
@@ -454,10 +530,10 @@ function handlePlayerState() {
 }
 
 function checkForObstacleCollisions(entity) {
-	let direction = collisionDirection(player, entity, playerContainer);
+	let direction = collisionDirection(player, entity);
 	if (entity.type === OBSTACLE && direction) {
-		handleCollision(player, playerContainer, entity, direction);
-		changeCharacterState(player, STATES.FALLING);
+		let newState = handleCollision(player, entity, direction, currentState, currentlyCollidingSprites);
+		changePlayerState(newState);
 	}
 }
 
@@ -477,17 +553,24 @@ function handleObstacleMovement(delta) {
 	})
 }
 
+function handleTimerPositioning() {
+	if (viewportSorter.timer?.visible) {
+		viewportSorter.timer.x = viewportContainer.right - viewportContainer.screenWidth/2;
+		viewportSorter.timer.y = viewportContainer.top + 20;
+	}
+}
+
 function handleObstacleBoundaries(obstacle) {
 	switch (obstacle.movementType) {
 		case HORIZONTAL:
-			if (obstacle.x < obstacle.boundary1 ||
-				obstacle.x > obstacle.boundary2) {
+			if (obstacle.x < obstacle.boundaryLeft ||
+				obstacle.x > obstacle.boundaryRight) {
 				obstacle.vx *= -1;
 			}
 			break;
 		case VERTICAL:
-			if (obstacle.y < obstacle.boundary1 ||
-				obstacle.y > obstacle.boundary2) {
+			if (obstacle.y < obstacle.boundaryLeft ||
+				obstacle.y > obstacle.boundaryRight) {
 				obstacle.vy *= -1;
 			}
 			break;
@@ -496,47 +579,49 @@ function handleObstacleBoundaries(obstacle) {
 	}
 }
 
-function changeCharacterState(entity, state) {
-	entity.anchor.set(0.5);
-	console.log("WTf");
+function changePlayerState(state) {
 	switch (state) {
 		case STATES.STANDING:
+			player.anchor.set(0.5);
 			currentState = STATES.STANDING;
-			entity.textures = characterTextures[entity.charId].standingTextures;
-			entity.animationSpeed = ANIMATION_SPEEDS.standingTextures;
-			entity.play();
+			player.textures = characterTextures[player.charId].standingTextures;
+			player.animationSpeed = ANIMATION_SPEEDS.standingTextures;
+			player.play();
 			break;
 		case STATES.PRONE:
 			currentState = STATES.PRONE;
-			entity.textures = characterTextures[entity.charId].proneTexture;
-			entity.anchor.set(0.5, 0.1);
+			player.textures = characterTextures[player.charId].proneTexture;
+			player.anchor.set(0.5, 0.1);
 			break;
 		case STATES.WALKING:
+			player.anchor.set(0.5);
 			currentState = STATES.WALKING;
-			entity.textures = characterTextures[entity.charId].walkingTextures;
-			entity.animationSpeed = ANIMATION_SPEEDS.walkingTextures;
-			entity.play();
-			setYVelocity(entity, 1);
+			player.textures = characterTextures[player.charId].walkingTextures;
+			player.animationSpeed = ANIMATION_SPEEDS.walkingTextures;
+			player.play();
+			setYVelocity(1);
 			break;
 		case STATES.JUMPING:
+			player.anchor.set(0.5);
 			audioContext.jumpSound.play();
 			currentState = STATES.JUMPING;
-			entity.textures = characterTextures[entity.charId].jumpTexture;
-			setYVelocity(entity, -8);
+			player.textures = characterTextures[player.charId].jumpTexture;
+			setYVelocity(-8);
 			break;
 		case STATES.FALLING:
+			player.anchor.set(0.5);
 			currentState = STATES.FALLING;
-			entity.textures = characterTextures[entity.charId].jumpTexture;
+			player.textures = characterTextures[player.charId].jumpTexture;
 			break;
 		case STATES.DISABLED:
+			player.anchor.set(0.5);
 			currentState = STATES.DISABLED;
-			entity.textures = characterTextures[entity.charId].standingTextures;
-			entity.play();
+			player.textures = characterTextures[player.charId].standingTextures;
+			player.play();
 			break;
 		default:
 			break;
 	}
-	
 	console.log("CHANGING CHARACTER STATE TO "  + currentState);
 }
 let currentlyCollidingSprites = new Set();
@@ -551,20 +636,20 @@ function handleJump() {
 		// changes from positive to negative while they're in the middle of a sprite
 		if (entity.type !== WALL & entity.type !== OBSTACLE) {
 			if (player.vy < 0 && hitTestRectangle(player, entity)) {
-				console.log(entity);
 				currentlyCollidingSprites.add(entity);
 			}
 			//ignore collision if moving upwards
 			if (player.vy < 0) continue;
 		}
-		let direction = collisionDirection(player, entity, playerContainer);
+		let direction = collisionDirection(player, entity);
 		if (!direction) continue;
-		handleCollision(player, playerContainer, entity, direction);
+		let newState = handleCollision(player, entity, direction, currentState, currentlyCollidingSprites);
+		changePlayerState(newState);
 		break;
 	}
-	moveCharacterRelatively(playerContainer, player.vx, player.vy);
+	movePlayerContainerRelatively(player.vx, player.vy);
 	moveBackgroundsRelatively(player.vx, player.vy);
-	increaseYVelocity(player, GRAVITY);
+	increaseYVelocity(GRAVITY);
 	currentlyCollidingSprites.forEach((entity) => {
 		if (!hitTestRectangle(player, entity)) {
 			currentlyCollidingSprites.delete(entity);
@@ -576,16 +661,16 @@ function handleFall() {
 	for (let entity of entityGrid[0]) {
 		if (currentlyCollidingSprites.has(entity)) continue;
 		if (entity.type === OBSTACLE) continue;
-		let direction = collisionDirection(player, entity, playerContainer);
+		let direction = collisionDirection(player, entity);
 		//console.log(player.nextFrameY +  " " + player.gy +  " " + entity.y);
 		if (!direction) continue;
-		handleCollision(player, playerContainer, entity, direction);
-		console.log((player.gy + player.halfHeight) + " " + entity.y);
+		let newState = handleCollision(player, entity, direction, currentState, currentlyCollidingSprites);
+		changePlayerState(newState);
 		break;
 	}
-	moveCharacterRelatively(playerContainer, player.vx, player.vy);
+	movePlayerContainerRelatively(player.vx, player.vy);
 	moveBackgroundsRelatively(player.vx, player.vy);
-	increaseYVelocity(player, GRAVITY);
+	increaseYVelocity(GRAVITY);
 	currentlyCollidingSprites.forEach((entity) => {
 		if (!hitTestRectangle(player, entity)) {
 			currentlyCollidingSprites.delete(entity);
@@ -593,197 +678,38 @@ function handleFall() {
 	});
 }
 
-const left = keyboard("ArrowLeft");
-const right = keyboard("ArrowRight");
-const jump = keyboard(" ");
-const down = keyboard("ArrowDown");
-
-let rightHeldDown = false, leftHeldDown = false, jumpButtonIsHeldDown = false;
-left.press = () => {
-	leftHeldDown = true;
-	switch (currentState) {
-		case STATES.STANDING:
-			increaseXVelocity(player, -PLAYER_XVELOCITY);
-			changeCharacterState(player, STATES.WALKING);
-			break;
-		// if you are already walking when the left button was pressed, 
-		// you must've been walking right
-		case STATES.WALKING:
-			increaseXVelocity(player, -PLAYER_XVELOCITY);
-			changeCharacterState(player, STATES.STANDING);
-			break;
-		case STATES.DISABLED:
-			return;
-		default:
-			break;
-	}
-	// don't flip object if other arrow key is pressed
-	if (!rightHeldDown) player.scale.x = 1;
-};
-
-right.press = () => {
-	rightHeldDown = true;
-	switch (currentState) {
-		case STATES.STANDING:
-			increaseXVelocity(player, PLAYER_XVELOCITY);
-			changeCharacterState(player, STATES.WALKING);
-			break;
-		case STATES.WALKING:
-			increaseXVelocity(player, PLAYER_XVELOCITY);
-			changeCharacterState(player, STATES.STANDING);
-			break;
-		case STATES.DISABLED:
-			return;
-		default:
-			break;
-	}
-	//don't flip object if other arrow key is pressed
-	if (!leftHeldDown) horizontallyFlipCharacter(player, -1);
-};
-
-left.release = () => {
-	leftHeldDown = false;
-	switch (currentState) {
-		case STATES.STANDING:
-		case STATES.WALKING:
-			setXVelocity(player, 0);
-			//flip object back to original orientation
-			if (rightHeldDown) {
-				horizontallyFlipCharacter(player, -1);
-				changeCharacterState(player, STATES.WALKING);
-				increaseXVelocity(player, PLAYER_XVELOCITY);
-			} else {
-				changeCharacterState(player, STATES.STANDING);
-			}
-			break;
-		case STATES.JUMPING:
-		case STATES.FALLING:
-			if (rightHeldDown) horizontallyFlipCharacter(player, -1);
-			break;
-		default:
-			break;
-	}
-}
-right.release = () => {
-	rightHeldDown = false;
-	switch (currentState) {
-		case STATES.STANDING:
-		case STATES.WALKING:
-			setXVelocity(player, 0);
-			//flip object back to original orientation
-			if (leftHeldDown) {
-				player.scale.x = 1;
-				changeCharacterState(player, STATES.WALKING);
-				increaseXVelocity(player, -PLAYER_XVELOCITY);
-			} else {
-				changeCharacterState(player, STATES.STANDING);
-			}
-			break;
-		case STATES.JUMPING:
-		case STATES.FALLING:
-			if (leftHeldDown) player.scale.x = 1;
-			break;
-		default:
-			break;
-	}
+function setXVelocity(velocity) {
+	player.vx = velocity;
 }
 
-jump.press = () => {
-	switch (currentState) {
-		case STATES.JUMPING:
-		case STATES.FALLING:
-		case STATES.DISABLED:
-			return;
-		default:
-			break;
-	}
-	changeCharacterState(player, STATES.JUMPING);
-	jumpButtonIsHeldDown = true;
-};
-
-jump.release = () => {
-	jumpButtonIsHeldDown = false;
+function setYVelocity(velocity) {
+	player.vy = velocity;
 }
 
-down.press = () => {
-	if (currentState === STATES.STANDING || currentState === STATES.WALKING) {
-			changeCharacterState(player, STATES.PRONE);
-	}
+function increaseXVelocity(velocity) {
+	player.vx += velocity;
 }
 
-down.release = () => {
-	if (currentState !== STATES.PRONE) return;
-	changeCharacterState(player, STATES.STANDING);
+function increaseYVelocity(velocity) {
+	if (player.vy < TERMINAL_VELOCITY) player.vy += velocity;
 }
 
-function keyboard(value) {
-	let key = {};
-	key.value = value;
-	key.isDown = false;
-	key.isUp = true;
-	key.press = undefined;
-	key.release = undefined;
-	//The `downHandler`
-	key.downHandler = event => {
-		if (event.key === key.value) {
-			if (key.isUp && key.press) key.press();
-			key.isDown = true;
-			key.isUp = false;
-			event.preventDefault();
-		}
-	};
-	//The `upHandler`
-	key.upHandler = event => {
-		if (event.key === key.value) {
-			if (key.isDown && key.release) key.release();
-			key.isDown = false;
-			key.isUp = true;
-			event.preventDefault();
-		}
-	};
-	//Attach event listeners
-	const downListener = key.downHandler.bind(key);
-	const upListener = key.upHandler.bind(key);
-	window.addEventListener(
-		"keydown", downListener, false
-	);
-	window.addEventListener(
-		"keyup", upListener, false
-	);
-	// Detach event listeners
-	key.unsubscribe = () => {
-		window.removeEventListener("keydown", downListener);
-		window.removeEventListener("keyup", upListener);
-	};
-	return key;
+function movePlayerContainerRelatively(vx, vy) {
+	playerContainer.x += vx;
+	playerContainer.y += vy;
 }
 
-function setXVelocity(entity, velocity) {
-	entity.vx = velocity;
+function setPlayerContainerPosition(x, y) {
+	if (x !== undefined) playerContainer.x = x;
+	if (y !== undefined) playerContainer.y = y;
 }
 
-function setYVelocity(entity, velocity) {
-	entity.vy = velocity;
-}
-
-function increaseXVelocity(entity, velocity) {
-	entity.vx += velocity;
-}
-
-function increaseYVelocity(entity, velocity) {
-	if (entity.vy < TERMINAL_VELOCITY) entity.vy += velocity;
-}
-
-function moveCharacterRelatively(entity, x, y) {
-	entity.x += x;
-	entity.y += y;
-}
-
-function horizontallyFlipCharacter(entity, x) {
-	entity.scale.x = x;
+function horizontallyFlipCharacter(x) {
+	player.scale.x = x;
 }
 
 function moveBackgroundsRelatively(x, y) {
+	if (updatedScene === SCENES.MULTIPLAYER_LOBBY) return;
 	if (updatedScene === SCENES.JUMP_QUEST_1 || updatedScene === SCENES.JUMP_QUEST_3) {
 		for (let bg of mainContainer[updatedScene].movingBackgroundsFar) {
 			bg.x += (-x * BACKGROUND_SCALING_FAR);
@@ -795,7 +721,7 @@ function moveBackgroundsRelatively(x, y) {
 		}
 	} else {
 		for (let bg of mainContainer[updatedScene].movingBackgroundsFar) {
-			bg.x += (-x * (2 *BACKGROUND_SCALING_FAR));
+			bg.x += (-x * (BACKGROUND_SCALING_FAR / 2));
 			bg.y += (-y * BACKGROUND_SCALING_FAR);
 		}
 		for (let bg of mainContainer[updatedScene].movingBackgroundsNear) {
@@ -803,106 +729,6 @@ function moveBackgroundsRelatively(x, y) {
 			bg.y += (-y * BACKGROUND_SCALING_NEAR);
 		}
 	}
-}
-
-// update nextFrameX at the beginning of render.
-// after making sure there aren't any collisions, update X
-// this direction is the direction you approach the entity from
-// (so right means you are to the right of the entity when colliding)
-export const handleCollision = (sprite, spriteContainer, entity, direction) => {
-	console.log(direction + " " + currentState);
-
-	switch(entity.type) {
-		case OBSTACLE:
-			console.log(direction);
-			flinchSprite(sprite, direction);
-			changeCharacterState(sprite, STATES.FALLING);
-			currentlyCollidingSprites.add(entity);
-			return;
-		case WALL:
-			handleWallCollision(sprite, spriteContainer, entity);
-			return;
-		default:
-			break;
-	}
-	switch (direction) {
-		case 'top':
-			return;
-			setYVelocity(sprite, 0);
-			changeCharacterState(sprite, STATES.FALLING);
-			break;
-		case 'bottom':
-			if (currentState === STATES.WALKING) return;
-			setYVelocity(sprite, 0);
-			spriteContainer.y = entity.y - sprite.halfHeight;
-			//if (sprite.vy < 0) return;
-			switch (entity.type) {
-				case FINAL_PLATFORM:
-					//when reaching the final platform, we don't want to disable the char,
-					//but create an invisible box where the player can't exit?
-					//changeCharacterState(sprite, STATES.DISABLED);
-					//return;
-					audioContext.jumpQuestFinished.play();
-					entity.type = '';
-					break;
-				case TELEPORT_PLATFORM:
-					spriteContainer.x = entity.teleportCoordinatesX + sprite.halfWidth;
-					spriteContainer.y = entity.teleportCoordinatesY - sprite.halfHeight;
-					break;
-				default:
-					break;
-			}
-
-			console.log(sprite.vy);
-			if (jumpButtonIsHeldDown) {
-				// console.log("jumping");
-				// console.log(sprite.y + " " + sprite.vy);
-				// not sure how to fix jump spam when landing on platform
-				//changeCharacterState(sprite, STATES.STANDING);
-				
-				//changeCharacterState(sprite, STATES.JUMPING);
-			}
-			if (leftHeldDown != rightHeldDown) {
-				if (leftHeldDown) setXVelocity(sprite, -PLAYER_XVELOCITY);
-				if (rightHeldDown) setXVelocity(sprite, PLAYER_XVELOCITY);
-				changeCharacterState(sprite, STATES.WALKING);
-			} else {
-				setXVelocity(sprite, 0);
-				changeCharacterState(sprite, STATES.STANDING);
-			}
-			break;
-		case 'left':
-			if (currentState !== STATES.WALKING) return;
-			setXVelocity(sprite, 0);
-			spriteContainer.x = entity.x + entity.width + sprite.width/2;
-			break;
-		case 'right':
-			if (currentState !== STATES.WALKING) return;
-			setXVelocity(sprite, 0);
-			spriteContainer.x = entity.x - sprite.width/2 + 15;
-			break;
-		default:
-			break;
-	}
-}
-
-function flinchSprite(r1, direction) {
-	r1.vy = -4;
-	if (direction === "left") {
-		r1.vx = 3;
-	} else {
-		r1.vx = -3;
-	}
-}
-
-function handleWallCollision(sprite, spriteContainer, entity) {
-	// sprite is on the right of the wall
-	if (spriteContainer.x > (entity.x + entity.width/2)) {
-		spriteContainer.x = entity.x + entity.width + spriteContainer.width/2;
-	} else {
-		spriteContainer.x = entity.x - sprite.width/2 + 15;
-	}
-	setXVelocity(sprite, 0);
 }
 
 function setPlayerContainer(newPlayerContainer) {
@@ -927,7 +753,6 @@ function changeAppBackgroundColor(color) {
 }
 
 function addViewportToMainContainer(stage) {
-	console.log("please!");
 	switch (stage) {
 		case 1:
 			mainContainer.jumpQuest1.addChild(viewportContainer, 10);
@@ -950,13 +775,64 @@ function addViewportToMainContainer(stage) {
 	}
 }
 
+function initiateTimer() {
+	if (!playerReachedGoal && viewportSorter.timer) {
+		viewportSorter.timer.visible = true;
+		viewportSorter.sortChildren();
+		if (audioContext.jumpQuest1BGM.playing()) audioContext.jumpQuest1BGM.rate(1.3);
+		if (audioContext.jumpQuest2BGM.playing()) audioContext.jumpQuest2BGM.rate(1.3);
+		let jumpQuestSheet = loader.resources[ASSET_PATH + "sprites/jumpQuest2.json"].spritesheet;
+		let timer = setInterval(() => {
+			let tensDigit = Math.floor(timeRemaining / 10);
+			let onesDigit = timeRemaining % 10;
+			viewportSorter.timer.tens.texture = jumpQuestSheet.textures[tensDigit + '.png'];
+			viewportSorter.timer.ones.texture = jumpQuestSheet.textures[onesDigit + '.png'];
+			timeRemaining--;
+			if (timeRemaining < 0) {
+				clearInterval(timer);
+				updatedScene = SCENES.MULTIPLAYER_LOBBY;
+			}
+		}, 1000);
+	}
+}
+
+function setPlayerReachedGoal() {
+	if (!playerReachedGoal) {
+		playerReachedGoal = true;
+		audioContext.firstPlace.play();
+	}
+}
+
+function getPlayerReachedGoal() {
+	return playerReachedGoal;
+}
+
+function setTimerReference(timer) {
+	viewportSorter.timer = timer;
+}
+
 //also need to export maincontainer
 
+function getCurrentState() {
+	return currentState;
+}
+
 export {
+	getCurrentState,
+	setYVelocity,
+	setXVelocity,
+	increaseXVelocity,
+	changePlayerState,
+	horizontallyFlipCharacter,
+	setPlayerContainerPosition,
 	setPlayerContainer,
 	addChildToViewportContainer,
 	addChildToViewportSorter,
 	changeAppBackgroundColor,
 	addViewportToMainContainer,
 	changeScene,
+	initiateTimer,
+	setPlayerReachedGoal,
+	getPlayerReachedGoal,
+	setTimerReference,
 }

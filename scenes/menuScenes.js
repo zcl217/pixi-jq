@@ -52,8 +52,6 @@ const {
 	TextInput,
 } = PIXI;
 
-export default createAllMenuScenes;
-
 let MAIN_CONTAINER_WIDTH, MAIN_CONTAINER_HEIGHT;
 let selectedPlayerMode;
 
@@ -77,26 +75,29 @@ function createAllMenuScenes(mainContainer, loader, characterTextures, entityGri
 	entityGrid = entityGrid1;
 
 console.log(characterTextures);
+	const startMenu = createStartMenu();
 	const characterCreationMenu = createCharacterCreationMenu(characterTextures);
 	const modeSelectionMenu = createModeSelectionMenu();
 	const stageSelectionMenu = createStageSelection(mainContainer);
 
 	const multiplayerMenu = createMultiplayerMenu();
-	const multiplayerLobby = createMultiplayerLobby(loader);
+	const multiplayerLobby = createMultiplayerLobby();
 
 	//add all the menus
+	menuScenes.addChild(startMenu, 1);
 	menuScenes.addChild(characterCreationMenu, 1);
 	menuScenes.addChild(modeSelectionMenu, 1);
 	menuScenes.addChild(stageSelectionMenu, 1);
 	menuScenes.addChild(multiplayerMenu, 1);
-	menuScenes.addChild(multiplayerLobby, 1)
+	menuScenes.addChild(multiplayerLobby, 1);
+	menuScenes[SCENES.START] = startMenu;
 	menuScenes[SCENES.CHAR_CREATION] = characterCreationMenu;
 	menuScenes[SCENES.MODE_SELECTION] = modeSelectionMenu;
 	menuScenes[SCENES.STAGE_SELECTION] = stageSelectionMenu;
 	menuScenes[SCENES.MULTIPLAYER_MENU] = multiplayerMenu;
 	menuScenes[SCENES.MULTIPLAYER_LOBBY] = multiplayerLobby;
 
-	//menuScenes.characterCreationMenu.visible = false;
+	menuScenes[SCENES.CHAR_CREATION].visible = false;
 	menuScenes[SCENES.MODE_SELECTION].visible = false;
 	menuScenes[SCENES.STAGE_SELECTION].visible = false;
 	menuScenes[SCENES.MULTIPLAYER_MENU].visible = false;
@@ -124,11 +125,118 @@ function generateBackgrounds(menuScenes) {
 	lobbyBg.visible = false;
 }
 
+function createStartMenu() {
+	let startMenu = new Container();
+	let left = new Sprite(menuSheet.textures['left.png']);
+	let right = new Sprite(menuSheet.textures['right.png']);
+	let down = new Sprite(menuSheet.textures['down.png']);
+	let spacebar = new Sprite(menuSheet.textures['spacebar.png']);
+
+	const controlsText = new Text('CONTROLS', {
+        fontFamily: 'Times New Roman',
+        fontSize: 40,
+        fill: 0x000000,
+		align: 'center',
+		fontWeight: 'bold',
+	});
+	controlsText.x = MAIN_CONTAINER_WIDTH/2 - controlsText.width/2;
+	controlsText.y = 10;
+
+	const leftText = new Text('Move left', {
+        fontFamily: 'Times New Roman',
+        fontSize: 30,
+        fill: 0x000000,
+		align: 'center',
+		fontWeight: 'bold',
+	});
+	left.x = MAIN_CONTAINER_WIDTH/3;
+	left.y = controlsText.y + leftText.height * 3;
+	leftText.x = left.x + controlsText.width/2 + 15;
+	leftText.y = left.y;
+
+	const rightText = new Text('Move right', {
+        fontFamily: 'Times New Roman',
+        fontSize: 30,
+        fill: 0x000000,
+		align: 'center',
+		fontWeight: 'bold',
+	});
+	right.x = MAIN_CONTAINER_WIDTH/3;
+	right.y = left.y + rightText.height * 2;
+	rightText.x = right.x + controlsText.width/2 + 15;
+	rightText.y = right.y;
+
+	const downText = new Text('Duck', {
+        fontFamily: 'Times New Roman',
+        fontSize: 30,
+        fill: 0x000000,
+		align: 'center',
+		fontWeight: 'bold',
+	});
+	down.x = MAIN_CONTAINER_WIDTH/3;
+	down.y = right.y + downText.height * 2;
+	downText.x = down.x + controlsText.width/2 + 15;
+	downText.y = down.y;
+
+	const spacebarText = new Text('Jump', {
+        fontFamily: 'Times New Roman',
+        fontSize: 30,
+        fill: 0x000000,
+		align: 'center',
+		fontWeight: 'bold',
+	});
+	spacebar.x = MAIN_CONTAINER_WIDTH/3 - spacebar.width/2 + 15;
+	spacebar.y = down.y + spacebarText.height * 2;
+	spacebarText.x = left.x + controlsText.width/2 + 15;
+	spacebarText.y = spacebar.y;
+
+	let startButton = new Sprite(menuSheet.textures['start.png']);
+	startButton
+		.on('pointerdown', startClick)
+		.on('pointerup', onMainMenuStart)
+		.on('pointerout', startOut);
+	startButton.interactive = true;
+	startButton.x = MAIN_CONTAINER_WIDTH / 2 - startButton.width / 2;
+	startButton.y = MAIN_CONTAINER_HEIGHT - startButton.height * 1.5;
+	
+	startMenu.addChild(controlsText);
+	startMenu.addChild(left);
+	startMenu.addChild(right);
+	startMenu.addChild(down);
+	startMenu.addChild(spacebar);
+	startMenu.addChild(leftText);
+	startMenu.addChild(rightText);
+	startMenu.addChild(downText);
+	startMenu.addChild(spacebarText);
+	startMenu.addChild(startButton);
+
+	return startMenu;
+}
+
+function startClick() {
+	this.texture = menuSheet.textures['startDown.png'];
+	audioContext.click.play();
+	this.cursor = 'click';
+}
+
+function onMainMenuStart() {
+	audioContext.click.play();
+	this.cursor = 'default';
+	toggleMenuVisibility(SCENES.START, false);
+	toggleMenuVisibility(SCENES.CHAR_CREATION, true);
+}
+
+function startOut() {
+	this.texture = menuSheet.textures['start.png'];
+	this.cursor = 'default';
+}
+
+
+
 function createCharacterCreationMenu(characterTextures) {
     console.log(characterTextures);
 	const characterCreation = new SContainer();
 	const selectedCharacter = createSelectedCharacterContainer(characterTextures);
-    console.log("YOU WAT");
     console.log(selectedCharacter.character);
 	const characterSelection = createCharacterSelectionContainer(
 								selectedCharacter.character,
@@ -137,9 +245,9 @@ function createCharacterCreationMenu(characterTextures) {
 	// https://fontfaceobserver.com/ use this to display char name with font
 	let nameField = new TextInput({
 		input: {
-			fontSize: '25pt',
+			fontSize: '20pt',
 			padding: '14px',
-			width: '250px',
+			width: '200px',
 			color: '#26272E',
 		},
 		box: {
@@ -148,13 +256,10 @@ function createCharacterCreationMenu(characterTextures) {
 			disabled: { fill: 0xDBDBDB, rounded: 16 }
 		}
 	});
-	nameField.x = MAIN_CONTAINER_WIDTH / 2 - nameField.width;
-	nameField.y = MAIN_CONTAINER_HEIGHT - 100;
 	nameField.maxLength = 12;
 	nameField.placeholder = 'Your Name';
 
 	let OKButton = new Sprite(menuSheet.textures['OKButton.png']);
-	console.log(OKButton);
 	OKButton
 		.on('pointerdown', OKButtonClick)
 		.on('pointerup', () => { 
@@ -162,11 +267,13 @@ function createCharacterCreationMenu(characterTextures) {
 		})
 		.on('pointerout', OKButtonOut);
 	OKButton.x = MAIN_CONTAINER_WIDTH - (OKButton.width * 1.5);
-	OKButton.y = nameField.y - (OKButton.height/2 - nameField.height/2);
+	OKButton.y = MAIN_CONTAINER_HEIGHT - OKButton.height - 10;
 	OKButton.interactive = true;
 
+	nameField.x = OKButton.x + OKButton.width / 2 - nameField.width / 2;
+	nameField.y = OKButton.y - (nameField.height * 1.5);
+
 	characterCreation.addChild(characterSelection);
-	characterSelection.y = 30;
 	characterCreation.addChild(selectedCharacter);
 	characterCreation.addChild(nameField, 1);
 	characterCreation.addChild(OKButton, 1);
@@ -190,8 +297,6 @@ function createSelectedCharacterContainer(characterTextures) {
 	selectedCharFrame.beginFill(0x000000);
 	selectedCharFrame.drawRect(0, 0, 200, 200);
 	selectedCharFrame.endFill();
-	selectedCharFrame.x -= 130;
-	selectedCharFrame.y -= 150;
 	selectedCharFrame.alpha = 0.7;
 	selectedCharacter.addChild(selectedCharFrame);
 
@@ -207,9 +312,13 @@ function createSelectedCharacterContainer(characterTextures) {
 	selectedCharacter.addChild(currentCharacter);
 	selectedCharacter.character = currentCharacter;
 
-	selectedCharacter.x = MAIN_CONTAINER_WIDTH - 100;
-	selectedCharacter.y = MAIN_CONTAINER_HEIGHT / 2 + 50;
+	selectedCharacter.x = 500 + (MAIN_CONTAINER_WIDTH - 500 - selectedCharFrame.width)/2;
+	selectedCharacter.y = MAIN_CONTAINER_HEIGHT / 2 - selectedCharFrame.height;
 
+	// currentCharacter.x = selectedCharFrame.x + selectedCharFrame.width/1.35;
+	// currentCharacter.y = selectedCharFrame.y + selectedCharFrame.height/1.2;
+	currentCharacter.x = selectedCharFrame.x + currentCharacter.width + selectedCharFrame.width/2 - currentCharacter.width/2 - 5;
+	currentCharacter.y = selectedCharFrame.y + currentCharacter.height + 33;
 	return selectedCharacter;
 }
 
@@ -219,11 +328,9 @@ function createCharacterSelectionContainer(characterInFrame, characterTextures) 
 	const characterSelectionBg = new Sprite(createGradTexture());
 	characterSelectionBg.alpha = 0.8;
 	characterSelectionBg.width = 500;
-	characterSelectionBg.height = 350;
-	characterSelectionBg.x = 20;
-    characterSelectionBg.y = 50;
+	characterSelectionBg.height = MAIN_CONTAINER_HEIGHT;
+	// characterSelectionBg.x = 20;
     characterSelection.charId = 1;
-	console.log(characterSelectionBg);
 	characterSelection.addChild(characterSelectionBg);
 
 	const characterFrame = new Graphics()
@@ -262,7 +369,6 @@ function createCharacterSelectionContainer(characterInFrame, characterTextures) 
 		character.anchor.set(1);
 		//character.updateAnchor = true;
 		character.play();
-
 
 		characterContainer.addChild(character);
 		characterContainer.character = character;
@@ -356,17 +462,15 @@ function createModeSelectionMenu() {
 	const modeSelectionMenu = new Container();
 	modeSelectionMenu.addChild(createSinglePlayerButton());
 	modeSelectionMenu.addChild(createMultiplayerButton());
+	modeSelectionMenu.addChild(createBackButton(SCENES.MODE_SELECTION));
 	return modeSelectionMenu;
 }
 
 function createSinglePlayerButton() {
 	let singlePlayerButton = new Sprite(menuSheet.textures['singlePlayerButton.png']);
-
-	// singlePlayerButton.anchor.set(0, 5);
 	singlePlayerButton.interactive = true;
 	singlePlayerButton.x = 223;
 	singlePlayerButton.y = 100;
-
 	singlePlayerButton
 		.on('pointerover', onSinglePlayerButtonHover)
 		.on('pointerdown', onSinglePlayerClick)
@@ -400,12 +504,9 @@ function onSinglePlayerOut() {
 
 function createMultiplayerButton() {
 	let multiplayerButton = new Sprite(menuSheet.textures['multiplayerButton.png']);
-
-	//multiplayerButton.anchor.set(0, 0.5);
 	multiplayerButton.interactive = true;
 	multiplayerButton.x = 223;
 	multiplayerButton.y = 300;
-
 	multiplayerButton
 		.on('pointerdown', onMultiplayerClick)
 		.on('pointerup', onMultiplayerSelection)
@@ -430,6 +531,53 @@ function onMultiplayerOut() {
 	this.texture = menuSheet.textures['multiplayerButton.png'];
 }
 
+function createBackButton(scene) {
+	let backButton = new Sprite(menuSheet.textures['back.png']);
+	backButton.interactive = true;
+	backButton.x = 10;
+	backButton.y = MAIN_CONTAINER_HEIGHT - backButton.height - 10;
+	backButton
+		.on('pointerdown', onBackButtonClick)
+		.on('pointerup', () => { onBackButtonSelection(scene) })
+		.on('pointerout', onBackButtonRelease);
+	return backButton;
+}
+
+function onBackButtonClick() {
+	this.texture = menuSheet.textures['backDown.png'];
+	audioContext.click.play();
+}
+
+function onBackButtonSelection(scene) {
+	switch(scene) {
+		case SCENES.MODE_SELECTION:
+			toggleMenuVisibility(SCENES.MODE_SELECTION, false);
+			toggleMenuVisibility(SCENES.CHAR_CREATION, true);
+			break;
+		case SCENES.MULTIPLAYER_MENU:
+			toggleMenuVisibility(SCENES.MULTIPLAYER_MENU, false);
+			toggleMenuVisibility(SCENES.MODE_SELECTION, true);
+			break;
+		case SCENES.STAGE_SELECTION:
+			toggleMenuVisibility(SCENES.STAGE_SELECTION, false);
+			if (selectedPlayerMode === MODES.SINGLE_PLAYER) {
+				toggleMenuVisibility(SCENES.MODE_SELECTION, true);
+			} else if (selectedPlayerMode === MODES.MULTIPLAYER) {
+				toggleMenuVisibility(BACKGROUNDS.MENU_BG, false);
+				toggleMenuVisibility(SCENES.MULTIPLAYER_LOBBY, true);
+				toggleMenuVisibility(BACKGROUNDS.LOBBY_BG, true);
+			}
+			break;
+		default:
+			break;
+	}
+	audioContext.clickRelease.play();
+}
+
+function onBackButtonRelease() {
+	this.texture = menuSheet.textures['back.png'];
+}
+
 function createStageSelection(mainContainer) {
 	const stageMenu = new Container();
 	let OKButton = new Sprite(menuSheet.textures['OKButton.png']);
@@ -441,11 +589,14 @@ function createStageSelection(mainContainer) {
 	let stage2Button = createStageButton(menuSheet, 2, rightPosition, MAIN_CONTAINER_HEIGHT / 3);
 	stageMenu.addChild(stage2Button);
 
-	let stage3Button = createStageButton(menuSheet, 3, 50, MAIN_CONTAINER_HEIGHT/1.5);
+	let stage3Button = createStageButton(menuSheet, 3, 50, MAIN_CONTAINER_HEIGHT / 1.5);
 	stageMenu.addChild(stage3Button);
 	// stage3Button.y = stage1Button.y + (stage3Button.height * 1.5);
-	
-	let stageButtons = [stage1Button, stage2Button, stage3Button];
+
+	let stage4Button = createStageButton(menuSheet, 4, rightPosition, MAIN_CONTAINER_HEIGHT / 1.5);
+	stageMenu.addChild(stage4Button);
+
+	let stageButtons = [stage1Button, stage2Button, stage3Button, stage4Button];
 	let selectedStage = 1;
 	stage1Button
 		.on('pointerdown', stageButtonClick)
@@ -462,15 +613,21 @@ function createStageSelection(mainContainer) {
 		.on('pointerup', () => { onStageSelect(3, stage3Button, stageButtons) })
 		.on('pointerout', onStageButtonOut);
 
+	stage4Button
+		.on('pointerdown', stageButtonClick)
+		.on('pointerup', () => { onStageSelect(4, stage4Button, stageButtons) })
+		.on('pointerout', onStageButtonOut);
+
 	OKButton
 		.on('pointerdown', OKButtonClick)
 		.on('pointerup', onStageConfirm)
 		.on('pointerout', OKButtonOut);
 
 	OKButton.interactive = true;
-	OKButton.x = 600;
-	OKButton.y = 350;
+	OKButton.x = MAIN_CONTAINER_WIDTH - OKButton.width - 10;
+	OKButton.y = MAIN_CONTAINER_HEIGHT - OKButton.height - 10;
 	stageMenu.addChild(OKButton);
+	stageMenu.addChild(createBackButton(SCENES.STAGE_SELECTION));
 
 	return stageMenu;
 
@@ -503,21 +660,20 @@ function createStageSelection(mainContainer) {
 
 	function onStageConfirm() {
 		let currentScene = getCurrentScene();
-		switch (selectedPlayerMode) {
-			case MODES.SINGLE_PLAYER:
-				mainContainer.menuScenes.visible = false;
-				break;
-			case MODES.MULTIPLAYER:
-				sock.send(JSON.stringify({
-					type: socketTypes.UPDATE_SCENE,
-					scene: currentScene
-				}));
-				break;
-			default:
-				break;
+		if (selectedPlayerMode === MODES.MULTIPLAYER) {
+			sock.send(JSON.stringify({
+				type: socketTypes.UPDATE_SCENE,
+				scene: currentScene
+			}));
+			// if the jump quest ends, we want the host to also
+			// directly transition to the lobby screen instead of stage selection
+			toggleMenuVisibility(SCENES.STAGE_SELECTION, false);
+			hideAllBackgrounds();
+			toggleMenuVisibility(BACKGROUNDS.LOBBY_BG, true);
+			toggleMenuVisibility(SCENES.MULTIPLAYER_LOBBY, true);
 		}
-		toggleMenuVisibility(SCENES.STAGE_SELECTION, false);
 		changeScene(currentScene);
+		mainContainer.menuScenes.visible = false;
 	}
 
 	function getCurrentScene() {
@@ -548,6 +704,9 @@ function createStageButton(menuSheet, type, xPosition, yPosition) {
 			break;
 		case 3:
 			stageButton = new Sprite(menuSheet.textures['mediumMode.png']);
+			break;
+		case 4:
+			stageButton = new Sprite(menuSheet.textures['hardMode.png']);
 			break;
 		default:
 			stageButton = new Sprite(menuSheet.textures['superEasyMode.png']);
@@ -659,6 +818,8 @@ function createMultiplayerMenu() {
 	multiplayerMenu.addChild(joinRoom);
 	multiplayerMenu.addChild(roomField);
 	multiplayerMenu.addChild(statusText);
+	multiplayerMenu.addChild(createBackButton(SCENES.MULTIPLAYER_MENU));
+
 	return multiplayerMenu;
 }
 
@@ -726,7 +887,6 @@ function handleSuccessfulRoomCreation(roomId) {
 	toggleMenuVisibility(SCENES.MULTIPLAYER_LOBBY, true);
 	toggleMenuVisibility(BACKGROUNDS.MENU_BG, false);
 	toggleMenuVisibility(BACKGROUNDS.LOBBY_BG, true);
-	addChildToScene(SCENES.MULTIPLAYER_LOBBY, playerContainer);
 	playerContainer.x = LOBBY_START_POSITION_X;
 	playerContainer.y = LOBBY_START_POSITION_Y;
 	entityGrid[0] = generateLobbyBoundaries();
@@ -740,21 +900,14 @@ function handleSuccessfulRoomCreation(roomId) {
 	startButton.x = MAIN_CONTAINER_WIDTH - startButton.width - 50;
 	startButton.y = startButton.height / 2;
 	addChildToScene(SCENES.MULTIPLAYER_LOBBY, startButton);
+	addChildToScene(SCENES.MULTIPLAYER_LOBBY, playerContainer);
 
 	setRoomIdNumber(roomId);
-	
-	audioContext.title.fade(1, 0, 3000);
-	audioContext.lobby.play();
+	changeScene(SCENES.MULTIPLAYER_LOBBY);
 }
 
 function setRoomIdNumber(roomId) {
 	menuScenes.multiplayerLobby.roomIdNumber.text = roomId;
-}
-
-function startClick() {
-	this.texture = menuSheet.textures['startDown.png'];
-	audioContext.click.play();
-	this.cursor = 'click';
 }
 
 function onMultiplayerStart() {
@@ -764,11 +917,6 @@ function onMultiplayerStart() {
 	toggleMenuVisibility(BACKGROUNDS.MENU_BG, true);
 	selectedPlayerMode = MODES.MULTIPLAYER;
 	audioContext.clickRelease.play();
-}
-
-function startOut() {
-	this.texture = menuSheet.textures['start.png'];
-	this.cursor = 'default';
 }
 
 function joinRoomClick() {
@@ -817,7 +965,7 @@ function handleSuccessfulJoinRoom(roomId) {
 	entityGrid[0] = generateLobbyBoundaries();
 	clearInterval(loadingAnimation);
 	setRoomIdNumber(roomId);
-	audioContext.lobby.play();
+	changeScene(SCENES.MULTIPLAYER_LOBBY);
 }
 
 function joinRoomOut() {
@@ -825,7 +973,7 @@ function joinRoomOut() {
 	this.cursor = 'default';
 }
 
-function createMultiplayerLobby(loader) {
+function createMultiplayerLobby() {
 	const multiplayerLobby = new Container();
 	//generate the lobby scene
 	let roomIdText = new Text('Room ID', {
@@ -875,6 +1023,8 @@ function addChildToScene(scene, child) {
 }
 
 export {
+	createAllMenuScenes,
 	handleSuccessfulRoomCreation,
-	handleSuccessfulJoinRoom
+	handleSuccessfulJoinRoom,
+	generateLobbyBoundaries,
 }

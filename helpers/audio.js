@@ -16,6 +16,10 @@ const jumpQuestFinished = new Howl({
 	src: [ASSET_PATH + "audio/QuestClear.mp3"],
 	onload: () => { filesLoaded++ }
 });
+const firstPlace = new Howl({
+	src: [ASSET_PATH + "audio/firstPlace.mp3"],
+	onload: () => { filesLoaded ++ }
+});
 const click = new Howl({
 	src: [ASSET_PATH + "audio/mouseClick.mp3"],
 	onload: () => { filesLoaded++ }
@@ -54,6 +58,7 @@ const audioContext = {
 	jumpSound,
 	startJumpQuest,
 	jumpQuestFinished,
+	firstPlace,
 	click,
 	clickRelease,
 	title,
@@ -68,4 +73,4 @@ export {
 	totalFiles
 }
 
-  Howler.volume(0);
+ // Howler.volume(0);

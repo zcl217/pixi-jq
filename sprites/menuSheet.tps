@@ -290,6 +290,7 @@
                 <false/>
             </struct>
             <key type="filename">current spritesheet/buttons/easyMode.png</key>
+            <key type="filename">current spritesheet/buttons/hardMode.png</key>
             <key type="filename">current spritesheet/buttons/mediumMode.png</key>
             <key type="filename">current spritesheet/buttons/superEasyMode.png</key>
             <struct type="IndividualSpriteSettings">
@@ -471,6 +472,23 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">current spritesheet/down.png</key>
+            <key type="filename">current spritesheet/left.png</key>
+            <key type="filename">current spritesheet/right.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>11,10,22,21</rect>
+                <key>scale9Paddings</key>
+                <rect>11,10,22,21</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">current spritesheet/mushStand.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -498,6 +516,21 @@
                 <rect>123,129,245,258</rect>
                 <key>scale9Paddings</key>
                 <rect>123,129,245,258</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">current spritesheet/spacebar.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>48,11,95,23</rect>
+                <key>scale9Paddings</key>
+                <rect>48,11,95,23</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
@@ -530,6 +563,11 @@
             <filename>current spritesheet/backgrounds/ludiStage.png</filename>
             <filename>current spritesheet/backgrounds/mushStage.png</filename>
             <filename>current spritesheet/mushStand.png</filename>
+            <filename>current spritesheet/buttons/hardMode.png</filename>
+            <filename>current spritesheet/down.png</filename>
+            <filename>current spritesheet/left.png</filename>
+            <filename>current spritesheet/right.png</filename>
+            <filename>current spritesheet/spacebar.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

@@ -5,6 +5,7 @@ const STATES = {
     JUMPING: "JUMPING",
     FALLING: "FALLING",
     PRONE: "PRONE",
+    DISABLED: "DISABLED",
 }
 
 const TEXTURE_NAMES = {
@@ -22,6 +23,7 @@ const MODES = {
 }
 
 let SCENES = {
+    START: 'startMenu',
 	CHAR_CREATION: 'characterCreationMenu',
 	MODE_SELECTION: 'modeSelectionMenu',
 	STAGE_SELECTION: 'stageSelectionMenu',
@@ -36,8 +38,8 @@ let SCENES = {
 const LOBBY = "LOBBY";
 const JUMP_QUEST = "JUMP_QUEST";
 
-//const PLAYER_XVELOCITY = 1.7;
-const PLAYER_XVELOCITY = 5;
+const PLAYER_XVELOCITY = 1.7;
+// const PLAYER_XVELOCITY = 5;
 const PLAYER_HEIGHT_ADJUSTMENT = 0;
 const PLAYER_WIDTH_ADJUSTMENT = 10;
 
@@ -68,14 +70,13 @@ const ANIMATION_SPEEDS = {
 }
 
 let PLAYABLE_CHARACTERS = [];
-for (let a = 1; a <= 12; a++) PLAYABLE_CHARACTERS.push(a.toString());
+for (let a = 1; a <= 13; a++) PLAYABLE_CHARACTERS.push(a.toString());
 console.log(PLAYABLE_CHARACTERS);
 
 const LOBBY_START_POSITION_X = 550;
 const LOBBY_START_POSITION_Y = -50;
 
-let local = true;
-let testJq = 1;
+let local = false;
 
 let SERVER_URL;
 let LUDI_START_POSITION_X;
@@ -85,19 +86,23 @@ let MUSH_START_POSITION_Y;
 if (local) {
     SERVER_URL = "http://localhost:3333/test";
 
-    LUDI_START_POSITION_X = 610;
-    LUDI_START_POSITION_Y = -1730;
+    // LUDI_START_POSITION_X = 610;
+    // LUDI_START_POSITION_Y = -1730;
+        LUDI_START_POSITION_X = 610;
+    LUDI_START_POSITION_Y = -1330;
 
-    MUSH_START_POSITION_X = 2210;
-    MUSH_START_POSITION_Y = -50;
+    MUSH_START_POSITION_X = 2710;
+    //MUSH_START_POSITION_X = 1175;
+    MUSH_START_POSITION_Y = -600;
 } else {
     SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
     LUDI_START_POSITION_X = 760;
     LUDI_START_POSITION_Y = -400;
-    MUSH_START_POSITION_X = 1375;
-    MUSH_START_POSITION_Y = -200;
+    MUSH_START_POSITION_X = 1070;
+    MUSH_START_POSITION_Y = -150;
 }
 
+const TIME_REMAINING = 60;
 
 
 const CONNECTION_STATUS = {
@@ -136,6 +141,7 @@ export {
     LOBBY,
     JUMP_QUEST,
     SERVER_URL,
+    TIME_REMAINING,
     CONNECTION_STATUS,
     SCENES,
     ASSET_PATH,
