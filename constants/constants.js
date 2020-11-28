@@ -71,7 +71,6 @@ const ANIMATION_SPEEDS = {
 
 let PLAYABLE_CHARACTERS = [];
 for (let a = 1; a <= 13; a++) PLAYABLE_CHARACTERS.push(a.toString());
-console.log(PLAYABLE_CHARACTERS);
 
 const LOBBY_START_POSITION_X = 550;
 const LOBBY_START_POSITION_Y = -50;

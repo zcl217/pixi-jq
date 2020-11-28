@@ -21,7 +21,7 @@ import {
 } from './constants/constants.js';
 import socketTypes from './constants/socketTypes.js';
 
-import { 
+import {
 	sock,
 	connectionStatus,
 	updatedPlayerProperties,
@@ -31,7 +31,7 @@ import {
 
 import SContainer from './scripts/SContainer.js';
 
-import { createAllMenuScenes, generateLobbyBoundaries } from './scenes/menuScenes.js';
+import { createAllMenuScenes, generateLobbyBoundaries, createLoadingScreen } from './scenes/menuScenes.js';
 import { createJumpQuest1Scene } from './scenes/jumpQuest1.js';
 import { createJumpQuest2Scene } from './scenes/jumpQuest2.js';
 import { createJumpQuest3Scene } from './scenes/jumpQuest3.js';
@@ -42,7 +42,7 @@ import {
 	handleCollision,
 	hitTestRectangle
 } from './helpers/collisionHandler.js';
-import { audioContext } from '../helpers/audio.js';
+import { audioContext, filesLoaded, totalFiles } from '../helpers/audio.js';
 import createCharacter from '../helpers/playerCreator.js';
 import { createJumpQuest } from './helpers/jumpQuestCreator.js';
 
@@ -52,16 +52,15 @@ if (!PIXI.utils.isWebGLSupported()) {
 }
 
 const { loader } = PIXI;
-PIXI.utils.sayHello(type);
 
 //Create a Pixi Application
-let app = new PIXI.Application({ 
-    width: 512,
-    height: 512,
-    antialias: true,
-    transparent: false,
+let app = new PIXI.Application({
+	width: 512,
+	height: 512,
+	antialias: true,
+	transparent: false,
 	resolution: 1,
-  }
+}
 );
 //Add the canvas that Pixi automatically created for you to the HTML document
 document.body.appendChild(app.view);
@@ -75,15 +74,14 @@ const viewportContainer = new Viewport.Viewport({
 	worldWidth: 512,
 	worldHeight: 512,
 	interaction: app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
-})
+});
+viewportContainer.clampZoom({
+	maxWidth: 2000,
+	maxHeight: 1000
+});
 
 const viewportSorter = new SContainer();
 viewportContainer.addChild(viewportSorter);
-
-viewportContainer.clampZoom({
-  maxWidth: 2000,
-  maxHeight: 1000
-});
 
 window.addEventListener('resize', () => {
 	app.renderer.resize(window.innerWidth, window.innerHeight);
@@ -93,7 +91,6 @@ window.addEventListener('resize', () => {
 app.renderer.view.style.position = "absolute";
 app.renderer.view.style.display = "block";
 app.renderer.autoResize = true;
-app.renderer.antialias = false;	
 app.renderer.resize(window.innerWidth, window.innerHeight);
 app.renderer.plugins.interaction.cursorStyles.default = "url('" + ASSET_PATH + "sprites/current spritesheet/cursor.png'),auto";
 app.renderer.plugins.interaction.cursorStyles.hover = "url('" + ASSET_PATH + "sprites/current spritesheet/cursorHover.png'),auto"
@@ -106,7 +103,7 @@ viewportContainer
 	.pinch()
 	//  .wheel()
 	.decelerate();
-
+createLoadingScreen(mainContainer);
 
 //in the future, make sure we put all sprites in the spritesheet
 PIXI.loader
@@ -121,11 +118,15 @@ PIXI.loader
 	.add(ASSET_PATH + "sprites/jumpQuest2.json")
 	.load(setup);
 
+
 loader.onProgress.add(loadHandler);
 
 function loadHandler(loader, resource) {
 	console.log("loading: " + resource.url);
-	console.log("Progress: " + loader.progress.toString().substring(0, 4) + "%");
+	let percentage = loader.progress + (filesLoaded / totalFiles);
+	mainContainer.loadingPercentage.text = percentage.toString().substring(0, 4) + ' %';
+	console.log("Progress: " + percentage.toString().substring(0, 4) + "%");
+	
 }
 
 let player, playerContainer;
@@ -141,7 +142,7 @@ let playerReachedGoal = false;
 let timeRemaining = TIME_REMAINING;
 
 function setup() {
-	console.log(app.renderer.type);
+	mainContainer.removeChildren();
 	//app.stage.viewportContainer.visible = false;
 	initializeCharacterTextures();
 	initializeScenes();
@@ -178,7 +179,7 @@ function initializeScenes() {
 	let menuScenes = createAllMenuScenes(
 		mainContainer,
 		loader,
-		characterTextures, 
+		characterTextures,
 		entityGrid
 	);
 	mainContainer.addChild(menuScenes);
@@ -192,9 +193,9 @@ function initializeScenes() {
 	mainContainer.jumpQuest3 = jumpQuest3;
 	mainContainer.jumpQuest4 = jumpQuest4;
 
-	menuScenes.x = app.screen.width/2 - menuScenes.width/2;
-	menuScenes.y = app.screen.height/2 - menuScenes.height/2;
-	
+	menuScenes.x = app.screen.width / 2 - menuScenes.width / 2;
+	menuScenes.y = app.screen.height / 2 - menuScenes.height / 2;
+
 	mainContainer.menuScenes.visible = true;
 	mainContainer.jumpQuest1.visible = false;
 	mainContainer.jumpQuest2.visible = false;
@@ -204,7 +205,7 @@ function initializeScenes() {
 
 function gameLoop(delta) {
 	if (sock) {
-		switch(connectionStatus) {
+		switch (connectionStatus) {
 			case CONNECTION_STATUS.PENDING:
 				return;
 			case CONNECTION_STATUS.ERROR:
@@ -219,7 +220,7 @@ function gameLoop(delta) {
 	// if multiplayer mode, update other players
 	if (sock) {
 		handleMultiplayer();
-	}	
+	}
 	player.nextFrameX = playerContainer.x + player.vx;
 	player.nextFrameY = playerContainer.y + player.vy;
 	handlePlayerState();
@@ -232,7 +233,7 @@ function gameLoop(delta) {
 
 function shouldRender(mainContainer) {
 	return mainContainer.menuScenes.visible === false ||
-		   	 mainContainer.menuScenes.multiplayerLobby.visible === true;
+		mainContainer.menuScenes.multiplayerLobby.visible === true;
 }
 
 function handleScene() {
@@ -258,7 +259,7 @@ function handleScene() {
 			playerContainer
 		];
 		console.log(updatedScene);
-		switch(updatedScene) {
+		switch (updatedScene) {
 			case SCENES.JUMP_QUEST_1:
 				createJumpQuest(...args, 1);
 				handleJumpQuestSceneChange(1);
@@ -348,9 +349,9 @@ function transferPlayersToNewScene(container) {
 function handleBGMTransition() {
 	if (audioContext.title.playing()) {
 		audioContext.title.fade(0.3, 0, 2000);
-        setTimeout(() => {
-            audioContext.title.stop();
-        }, 3000);
+		setTimeout(() => {
+			audioContext.title.stop();
+		}, 3000);
 	}
 	if (audioContext.jumpQuest1BGM.playing()) {
 		audioContext.jumpQuest1BGM.fade(0.3, 0, 2000);
@@ -413,7 +414,7 @@ function handleOtherPlayers() {
 	for (let a = 0; a < updatedPlayerProperties.length; a++) {
 		let updatedPlayer = updatedPlayerProperties[a];
 		// don't need to update yourself
-		if (!updatedPlayer.connectionId || 
+		if (!updatedPlayer.connectionId ||
 			(updatedPlayer.connectionId === currentConnectionId)) continue;
 		// add player if they aren't in the map
 		if (!otherPlayersMap.has(updatedPlayer.connectionId)) {
@@ -422,7 +423,7 @@ function handleOtherPlayers() {
 		}
 		let otherPlayerContainer = otherPlayersMap.get(updatedPlayer.connectionId);
 		let playerSprite = otherPlayerContainer.player;
-	//	console.log(updatedPlayer);
+		//	console.log(updatedPlayer);
 		// update player textures if they changed state
 		if (playerSprite.currentTextures !== updatedPlayer.currentTextures) {
 			updateOtherPlayerTextures(updatedPlayer, playerSprite);
@@ -494,12 +495,12 @@ function handlePlayerState() {
 			let onPlatform = false;
 			for (let entity of entityGrid[0]) {
 				if (entity.type === WALL) {
-				//	console.log(entity.x + " " + entity.width + " " + playerContainer.x);
+					//	console.log(entity.x + " " + entity.width + " " + playerContainer.x);
 				}
 				//console.log(entity.type);
 				let direction = collisionDirection(player, entity);
 				if (!direction) continue;
-				switch(entity.type) {
+				switch (entity.type) {
 					case OBSTACLE: {
 						onPlatform = false;
 						let newState = handleCollision(player, entity, direction, currentState, currentlyCollidingSprites);
@@ -555,7 +556,7 @@ function handleObstacleMovement(delta) {
 
 function handleTimerPositioning() {
 	if (viewportSorter.timer?.visible) {
-		viewportSorter.timer.x = viewportContainer.right - viewportContainer.screenWidth/2;
+		viewportSorter.timer.x = viewportContainer.right - viewportContainer.screenWidth / 2;
 		viewportSorter.timer.y = viewportContainer.top + 20;
 	}
 }
@@ -622,13 +623,13 @@ function changePlayerState(state) {
 		default:
 			break;
 	}
-	console.log("CHANGING CHARACTER STATE TO "  + currentState);
+	console.log("CHANGING CHARACTER STATE TO " + currentState);
 }
 let currentlyCollidingSprites = new Set();
 function handleJump() {
 	// if collision (check not just platforms but all objects in grid)
 	for (let entity of entityGrid[0]) {
-//		console.log(entity.type);
+		//		console.log(entity.type);
 		if (currentlyCollidingSprites.has(entity)) continue;
 		// if we're going up, ignore all entities (except walls and obstacles)
 		// we also need to record the entities we've ignored so that

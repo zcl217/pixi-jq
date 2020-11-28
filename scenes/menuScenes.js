@@ -71,10 +71,8 @@ function createAllMenuScenes(mainContainer, loader, characterTextures, entityGri
 
 	MAIN_CONTAINER_HEIGHT = menuScenes.height;
     MAIN_CONTAINER_WIDTH = menuScenes.width;
-    console.log(MAIN_CONTAINER_HEIGHT + " " + MAIN_CONTAINER_WIDTH);
 	entityGrid = entityGrid1;
 
-console.log(characterTextures);
 	const startMenu = createStartMenu();
 	const characterCreationMenu = createCharacterCreationMenu(characterTextures);
 	const modeSelectionMenu = createModeSelectionMenu();
@@ -1022,9 +1020,34 @@ function addChildToScene(scene, child) {
 	menuScenes[scene].addChild(child);
 }
 
+function createLoadingScreen(mainContainer) {
+	let loadingText = new Text('Loading. . .', {
+        fontFamily: 'Times New Roman',
+        fontSize: 50,
+        fill: 0xFFFFFFFF,
+		align: 'center',
+		fontWeight: 'bold',
+	});
+	let loadingPercentage = new Text('%', {
+        fontFamily: 'Times New Roman',
+        fontSize: 40,
+        fill: 0xFFFFFFFF,
+		align: 'center',
+		fontWeight: 'bold',
+	});
+	loadingText.x = 512 / 2;
+	loadingText.y = 200;
+	loadingPercentage.x = loadingText.x + loadingText.width / 2;
+	loadingPercentage.y = loadingText.y + loadingText.height * 1.5;
+	mainContainer.addChild(loadingText);
+	mainContainer.addChild(loadingPercentage);
+	mainContainer.loadingPercentage = loadingPercentage;
+}
+
 export {
 	createAllMenuScenes,
 	handleSuccessfulRoomCreation,
 	handleSuccessfulJoinRoom,
 	generateLobbyBoundaries,
+	createLoadingScreen
 }
