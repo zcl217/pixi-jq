@@ -373,7 +373,6 @@ let obstacles = [
 function generateObstacles(jumpQuestSheet) {
 	let obstacleSprites = [];
 	for (let obstacleData of obstacles) {
-        console.log("dafuq");
         let obstacle;
         switch(obstacleData.spriteType) {
             case 1:

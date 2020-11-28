@@ -103,9 +103,10 @@ viewportContainer
 	.pinch()
 	//  .wheel()
 	.decelerate();
+
+
 createLoadingScreen(mainContainer);
 
-//in the future, make sure we put all sprites in the spritesheet
 PIXI.loader
 	.add('ludiClouds', ASSET_PATH + "sprites/current spritesheet/jq assets/ludi/midClouds.png")
 	.add('towerA', ASSET_PATH + "sprites/current spritesheet/jq assets/ludi/towerA.png")
@@ -118,15 +119,13 @@ PIXI.loader
 	.add(ASSET_PATH + "sprites/jumpQuest2.json")
 	.load(setup);
 
-
 loader.onProgress.add(loadHandler);
 
 function loadHandler(loader, resource) {
-	console.log("loading: " + resource.url);
 	let percentage = loader.progress + (filesLoaded / totalFiles);
 	mainContainer.loadingPercentage.text = percentage.toString().substring(0, 4) + ' %';
+	console.log("loading: " + resource.url);
 	console.log("Progress: " + percentage.toString().substring(0, 4) + "%");
-	
 }
 
 let player, playerContainer;
@@ -143,7 +142,6 @@ let timeRemaining = TIME_REMAINING;
 
 function setup() {
 	mainContainer.removeChildren();
-	//app.stage.viewportContainer.visible = false;
 	initializeCharacterTextures();
 	initializeScenes();
 	changeAppBackgroundColor(0x000000);
@@ -374,10 +372,7 @@ function handleBGMTransition() {
 }
 
 function hideJumpQuestScenes() {
-	mainContainer.jumpQuest1.removeChildren();
-	mainContainer.jumpQuest2.removeChildren();
-	mainContainer.jumpQuest3.removeChildren();
-	mainContainer.jumpQuest4.removeChildren();
+	viewportSorter.removeChildren();
 	mainContainer.jumpQuest1.visible = false;
 	mainContainer.jumpQuest2.visible = false;
 	mainContainer.jumpQuest3.visible = false;

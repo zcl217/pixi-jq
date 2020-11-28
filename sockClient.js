@@ -15,7 +15,7 @@ let playersToRemove = [];
 let connectionStatus = CONNECTION_STATUS.PENDING;
 
 function createConnection(url, messages) {
-    sock = new SockJS(url);
+    sock = new SockJS(url, {timeout: 10000});
     console.log(sock);
     console.log(url);
     console.log("establishing connection...");
