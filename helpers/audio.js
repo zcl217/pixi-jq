@@ -34,9 +34,6 @@ const title = new Howl({
 	volume: 0.3,
 	onload: () => { filesLoaded++ }
 });
-title.on('fade', () => {
-	title.stop();
-});
 const lobby = new Howl({
 	src: [ASSET_PATH + "audio/Lobby.mp3"],
 	loop: true,
