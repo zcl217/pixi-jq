@@ -25,12 +25,6 @@ function createJumpQuest1Scene(loader) {
     return jumpQuestScene;
 }
 
-//memo: adding roundpixels: true to the app settings
-//fixes the weird pixel glitch but makes the movement
-//less smooth. might be a problem with the image? ... not sure
-// the problem is with the spritesheet! 
-// IF SOMETHING LIKE THIS HAPPENS AGAIN JUST DIRECTLY IMPORT
-// THAT TEXTURE INSTEAD OF WASTING TIME.
 function generateBackgrounds(jumpQuestScene, loader) {
     let jumpQuestSheet = loader.resources[ASSET_PATH + "sprites/jumpQuest1.json"].spritesheet;
 
