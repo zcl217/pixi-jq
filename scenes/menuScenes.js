@@ -556,7 +556,10 @@ function onBackButtonSelection(scene) {
 		case SCENES.STAGE_SELECTION:
 			toggleMenuVisibility(SCENES.STAGE_SELECTION, false);
 			if (selectedPlayerMode === MODES.SINGLE_PLAYER) {
-				toggleMenuVisibility(SCENES.MODE_SELECTION, true);
+				toggleMenuVisibility(SCENES.MODE_SELECTION, true);	
+				toggleMenuVisibility(BACKGROUNDS.MENU_BG, true);
+				toggleMenuVisibility(BACKGROUNDS.STAGE1_BG, false);
+				toggleMenuVisibility(BACKGROUNDS.STAGE2_BG, false);
 			} else if (selectedPlayerMode === MODES.MULTIPLAYER) {
 				toggleMenuVisibility(BACKGROUNDS.MENU_BG, false);
 				toggleMenuVisibility(SCENES.MULTIPLAYER_LOBBY, true);
@@ -719,7 +722,6 @@ function createStageButton(menuSheet, type, xPosition, yPosition) {
 function stageButtonClick() {
 	audioContext.click.play();
 	this.cursor = 'click';
-
 }
 
 function hideAllBackgrounds() {
