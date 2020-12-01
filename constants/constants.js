@@ -39,7 +39,7 @@ const LOBBY = "LOBBY";
 const JUMP_QUEST = "JUMP_QUEST";
 
 const PLAYER_XVELOCITY = 1.7;
-// const PLAYER_XVELOCITY = 5;
+//const PLAYER_XVELOCITY = 10;
 const PLAYER_HEIGHT_ADJUSTMENT = 0;
 const PLAYER_WIDTH_ADJUSTMENT = 10;
 
@@ -51,8 +51,6 @@ const GRAVITY = 0.5;
 
 const NEXT_STEP_X = 85;
 const NEXT_STEP_Y = 60;
-
-
 
 const FINAL_PLATFORM = "finalPlatform";
 const OBSTACLE = "obstacle";
@@ -70,7 +68,7 @@ const ANIMATION_SPEEDS = {
 }
 
 let PLAYABLE_CHARACTERS = [];
-for (let a = 1; a <= 13; a++) PLAYABLE_CHARACTERS.push(a.toString());
+for (let a = 1; a <= 16; a++) PLAYABLE_CHARACTERS.push(a.toString());
 
 const LOBBY_START_POSITION_X = 550;
 const LOBBY_START_POSITION_Y = -50;
@@ -90,8 +88,9 @@ if (local) {
         LUDI_START_POSITION_X = 610;
     LUDI_START_POSITION_Y = -1330;
 
-    MUSH_START_POSITION_X = 2710;
-    //MUSH_START_POSITION_X = 1175;
+   // MUSH_START_POSITION_X = 2500;
+    MUSH_START_POSITION_X = 3010;
+    //MUSH_START_POSITION_X = 1340;
     MUSH_START_POSITION_Y = -600;
 } else {
     SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";

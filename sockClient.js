@@ -30,7 +30,7 @@ function addMessageHandlers() {
     sock.onmessage = function(rawMessage) {
         let message = JSON.parse(rawMessage.data);
         if (message.type !== socketTypes.UPDATE_PLAYER_LIST) {
-            console.log(message);
+            // console.log(message);
         }
         switch(message.type) {
             case socketTypes.UPDATE_PLAYER_LIST:
@@ -53,14 +53,13 @@ function addMessageHandlers() {
                 changeScene(message.scene);
                 break;
             case socketTypes.REACHED_GOAL:
-                console.log("please!");
                 initiateTimer();
                 setPlayerReachedGoal();
                 break;
             case socketTypes.INIT:
                 currentConnectionId = message.connectionId;
                 connectionStatus = CONNECTION_STATUS.SUCCESS;
-                console.log("initialized");
+                // console.log("Server connection established.");
                 break;
             case socketTypes.ERROR:
                 console.log(rawMessage);

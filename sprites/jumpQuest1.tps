@@ -70,7 +70,7 @@
             </struct>
         </struct>
         <key>shapePadding</key>
-        <uint>0</uint>
+        <uint>3</uint>
         <key>jpgQuality</key>
         <uint>80</uint>
         <key>pngOptimizationLevel</key>
@@ -181,7 +181,7 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
-            <key type="filename">current spritesheet/jq assets/ludi/bgTowerFar.png</key>
+            <key type="filename">backgrounds/bgTowerFar.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
@@ -190,9 +190,9 @@
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>34,180,67,361</rect>
+                <rect>34,256,67,512</rect>
                 <key>scale9Paddings</key>
-                <rect>34,180,67,361</rect>
+                <rect>34,256,67,512</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
@@ -320,7 +320,6 @@
         </map>
         <key>fileList</key>
         <array>
-            <filename>current spritesheet/jq assets/ludi/bgTowerFar.png</filename>
             <filename>current spritesheet/jq assets/ludi/bgTowerNear.png</filename>
             <filename>current spritesheet/jq assets/ludi/finishFlag.png</filename>
             <filename>current spritesheet/jq assets/ludi/jumpQuest1Step.png</filename>
@@ -330,6 +329,7 @@
             <filename>current spritesheet/jq assets/ludi/platform2.png</filename>
             <filename>current spritesheet/jq assets/ludi/platform3.png</filename>
             <filename>current spritesheet/jq assets/ludi/upperClouds.png</filename>
+            <filename>backgrounds/bgTowerFar.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

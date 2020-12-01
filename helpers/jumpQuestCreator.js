@@ -73,7 +73,6 @@ function createJumpQuest(
                 audioContext.jumpQuest1BGM.play();
                 audioContext.jumpQuest1BGM.fade(0, 0.3, 2000);
             }, 2000);
-            console.log("WTF?!?!");
             break;
         case 4:
             createJumpQuest4Viewport(
@@ -116,7 +115,6 @@ function createJumpQuest(
     addChildToViewportSorter(playerContainer, 10);
     addViewportToMainContainer(selectedStage);
     let timer = createTimer(loader);
-    console.log(timer);
     addChildToViewportSorter(timer, 9);
     setTimerReference(timer);
     

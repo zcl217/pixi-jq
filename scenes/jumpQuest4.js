@@ -84,7 +84,7 @@ function createJumpQuest4Viewport(
 	floorBg.x = floor.x;
 	floorBg.y = floor.y - (floorBg.height / 1.4) + 12;
 	floor.roundpixels = true;
-	floorBg.roundpixels = true;
+    floorBg.roundpixels = true;
 	addChildToViewportSorter(floorBg, 4);
 	addChildToViewportSorter(floor, 5);
 	entityGrid[0].push(floor);
@@ -107,7 +107,6 @@ function createJumpQuest4Viewport(
 	for (let step of steps) addChildToViewportSorter(step, 4);
 	
     const obstacles = generateObstacles(jumpQuestSheet);
-    console.log(obstacles[0]);
     entityGrid[0].push(...obstacles);
     
     dangerSignPositions.forEach((signData) => {
@@ -121,17 +120,15 @@ function createJumpQuest4Viewport(
         addChildToViewportSorter(sign, 3);
     });
 	
-	/*
-	let finishFlag = new Sprite(jumpQuestSheet.textures['finishFlag.png']);
-	viewportSorter.addChild(finishFlag);
+    
+    let finishFlagTexture = loader.resources[ASSET_PATH + "sprites/jumpQuest1.json"].spritesheet.textures['finishFlag.png'];
+	let finishFlag = new Sprite(finishFlagTexture);
+	addChildToViewportSorter(finishFlag, 3);
 	finishFlag.scale.x = 0.7;
 	finishFlag.scale.y = 0.7;
 	finishFlag.x = finalX + finishFlag.width/2;
-	finishFlag.y = finalY + 3;
+	finishFlag.y = finalY + 5;
 	finishFlag.anchor.set(0, 1);
-
-	viewportSorter.obstacles = obstacles;
-	*/
     
     generateJumpQuest4Boundaries(entityGrid);
 }
@@ -182,7 +179,6 @@ function generateSteps(
 		let step = new Sprite(jumpQuestSheet.textures['jumpQuest2Step' + randomStep + '.png']);
 		steps.push(step);
 		Object.assign(step, position);
-		if (step.type === TELEPORT_PLATFORM) console.log(step);
 		step.halfWidth = step.width / 2 - 12;
 		if (position.type !== INVISIBLE) {
 			entityGrid[0].push(step);
@@ -193,40 +189,57 @@ function generateSteps(
 
 
 let finalX, finalY;
-function generateStepPositions() {
+function generateStepPositions(dangerSignPositions, initialStepX, initialStepY) {
 	let x = initialStepX;
     let y = initialStepY;
-    let curObstacleIndex = 0;
-	let steps = [];
-	steps.push({x, y});
-	y -= NEXT_STEP_Y;
+    let curObstacleIndex = 1;
+    let steps = [];
+    for (let a = 0; a < 3; a++) {
+        steps.push({x, y});
+        y -= NEXT_STEP_Y;
+    }
 	steps.push({x, y});
     y -= NEXT_STEP_Y;
     x += NEXT_STEP_X;
+    obstacles[0].x = x;
+    obstacles[0].y = y + 5;
+    obstacles[0].boundaryLeft = x - NEXT_STEP_X;
     steps.push({x, y});
+    x += NEXT_STEP_X;
     y += NEXT_STEP_Y;
     obstacles[curObstacleIndex].x = x;
     obstacles[curObstacleIndex].y = y;
-    obstacles[curObstacleIndex].boundaryLeft = x;
+    obstacles[curObstacleIndex].boundaryLeft = x - NEXT_STEP_X;
     curObstacleIndex++;
-    obstacles[curObstacleIndex].x = x + NEXT_STEP_X;
+    obstacles[curObstacleIndex].x = x + NEXT_STEP_X * 1.3;
     obstacles[curObstacleIndex].y = y;
     obstacles[curObstacleIndex].boundaryLeft = x;
-	for (let a = 0; a < 7; a++) {
+	for (let a = 0; a < 4; a++) {
         steps.push({x, y})
         x += NEXT_STEP_X;
     }
     obstacles[curObstacleIndex-1].boundaryRight = x;
-    obstacles[curObstacleIndex].boundaryRight = x;
+    obstacles[curObstacleIndex].boundaryRight = x + NEXT_STEP_X / 2;
+    curObstacleIndex++;
 
     y -= NEXT_STEP_Y;
-    steps.push({x, y});
-    x += NEXT_STEP_X;
-    y += NEXT_STEP_Y;
+    for (let a = 0; a < 3; a++) {
+        steps.push({x, y});
+        x += NEXT_STEP_X;
+        y += NEXT_STEP_Y;
+    }
+    // these are the two horizontals
     obstacles[curObstacleIndex].x = x;
-    obstacles[curObstacleIndex].y = y;
-    obstacles[curObstacleIndex].boundaryLeft = x;
+    obstacles[curObstacleIndex].y = y - 10;
+    obstacles[curObstacleIndex].boundaryLeft = x - NEXT_STEP_X;
+    obstacles[curObstacleIndex].boundaryRight = x + NEXT_STEP_X / 2;
     curObstacleIndex++;
+    obstacles[curObstacleIndex].x = x;
+    obstacles[curObstacleIndex].y = y + 10;
+    obstacles[curObstacleIndex].boundaryLeft = x - NEXT_STEP_X;
+    obstacles[curObstacleIndex].boundaryRight = x + NEXT_STEP_X / 2;
+    curObstacleIndex++;
+
     for (let a = 0; a < 3; a++) {
         steps.push({x, y});
         y -= NEXT_STEP_Y;
@@ -235,98 +248,123 @@ function generateStepPositions() {
             obstacles[curObstacleIndex].x = x - NEXT_STEP_X;
             obstacles[curObstacleIndex].y = y;
             obstacles[curObstacleIndex].boundaryLeft = x - NEXT_STEP_X;
+            if (a === 1) {
+                obstacles[curObstacleIndex].x = x;
+                obstacles[curObstacleIndex].boundaryLeft = x;
+            }
             curObstacleIndex++;
         }
+
     }
-    y += NEXT_STEP_Y * 2;
-    let temp = curObstacleIndex;
+    
+    
+    let previousObstacleIndices = curObstacleIndex;
+    previousObstacleIndices--;
     for (let a = 0; a < 3; a++) {
         steps.push({x, y});
         y += NEXT_STEP_Y;
         x += NEXT_STEP_X;
-        obstacles[curObstacleIndex].boundaryRight = x + NEXT_STEP_X;
-        curObstacleIndex--;
+        if (a < 2) {
+            obstacles[previousObstacleIndices].boundaryRight = x + NEXT_STEP_X;
+            if (a === 0) obstacles[previousObstacleIndices].boundaryRight = x + NEXT_STEP_X / 3;
+            previousObstacleIndices--;
+        }
     }
-    curObstacleIndex = temp + 1;
     y -= NEXT_STEP_Y;
     steps.push({x, y});
 
+    // these are the two vertical ones
+    obstacles[curObstacleIndex].x = x - 40;
+    obstacles[curObstacleIndex].y = y;
+    obstacles[curObstacleIndex].boundaryLeft = y - 20;
+    obstacles[curObstacleIndex].boundaryRight = y + NEXT_STEP_Y;
+    curObstacleIndex++;
+    obstacles[curObstacleIndex].x = x - 20;
+    obstacles[curObstacleIndex].y = y;
+    obstacles[curObstacleIndex].boundaryLeft = y - 20;
+    obstacles[curObstacleIndex].boundaryRight = y + NEXT_STEP_Y;
+    curObstacleIndex++;
+    
+    x += NEXT_STEP_X;
+    steps.push({x, y});
 
-    for (let a = 1; a < 4; a++) {
-        if (a%2 == 0) {
-            steps.push({x, y: y - NEXT_STEP_Y});
-            steps.push({x, y: y + NEXT_STEP_Y, type: INVISIBLE});
-            dangerSignPositions.push({x, y: y + NEXT_STEP_Y});
-        } else {
-            steps.push({x, y});
-        }
+    y -= NEXT_STEP_Y
+    x += NEXT_STEP_X
+    steps.push({x, y});
+    obstacles[curObstacleIndex].x = x;
+    obstacles[curObstacleIndex].y = y - 20;
+    obstacles[curObstacleIndex].boundaryLeft = x - NEXT_STEP_X;
+    obstacles[curObstacleIndex].boundaryRight = x + NEXT_STEP_X / 2;
+    curObstacleIndex++;
+    obstacles[curObstacleIndex].x = x;
+    obstacles[curObstacleIndex].y = y - 20;
+    obstacles[curObstacleIndex].boundaryLeft = x - NEXT_STEP_X * 1.5;
+    obstacles[curObstacleIndex].boundaryRight = x + NEXT_STEP_X / 2;
+    curObstacleIndex++;
+
+    y -= NEXT_STEP_Y;
+    steps.push({x: x - NEXT_STEP_X, y});
+    y -= NEXT_STEP_Y;
+    steps.push({x, y});
+
+    obstacles[0].boundaryRight = x;
+    obstacles[curObstacleIndex].x = x;
+    obstacles[curObstacleIndex].y = y;
+    obstacles[curObstacleIndex].boundaryLeft = x;
+    obstacles[curObstacleIndex].boundaryRight = x + NEXT_STEP_X * 1.5;
+    curObstacleIndex++;
+    obstacles[curObstacleIndex].x = x;
+    obstacles[curObstacleIndex].y = y;
+    obstacles[curObstacleIndex].boundaryLeft = x;
+    obstacles[curObstacleIndex].boundaryRight = x + NEXT_STEP_X * 1.7;
+    curObstacleIndex++;
+    obstacles[curObstacleIndex].x = x;
+    obstacles[curObstacleIndex].y = y;
+    obstacles[curObstacleIndex].boundaryLeft = x;
+    obstacles[curObstacleIndex].boundaryRight = x + NEXT_STEP_X * 2;
+    curObstacleIndex++;
+    x += NEXT_STEP_X;
+    y -= NEXT_STEP_Y;
+    steps.push({x, y});
+    for (let a = 0; a < 3; a++) {
         x += NEXT_STEP_X;
-    }
-    //x -= NEXT_STEP_X;
-    for (let a = 0; a < 2; a++) {
         y += NEXT_STEP_Y;
         steps.push({x, y});
     }
-    y -= NEXT_STEP_Y;
-    dangerSignPositions.push({x: x - NEXT_STEP_X, y});
-    steps.push({x: x - NEXT_STEP_X, y, type: INVISIBLE});
-    x += NEXT_STEP_X;
-    steps.push({x, y});
-    x -= NEXT_STEP_X;
-    y -= NEXT_STEP_Y;
-    steps.push({x, y});
-    x += NEXT_STEP_X
-    y -= NEXT_STEP_Y;
-    steps.push({x, y});
-    x += NEXT_STEP_X
-    y -= NEXT_STEP_Y;
-    for (let a = 0; a < 4; a++) {   
-        steps.push({x, y});
-        x += NEXT_STEP_X
-        y -= NEXT_STEP_Y;
+
+    let tempObstacleIndex = curObstacleIndex;
+    for (let a = 0; a < 5; a++) {
+        if (a % 2 === 0) {
+            obstacles[tempObstacleIndex].y = y;
+        } else {      
+            obstacles[tempObstacleIndex].y = y + NEXT_STEP_Y;
+        }
+        obstacles[tempObstacleIndex].boundaryLeft = y - NEXT_STEP_Y / 2;
+        obstacles[tempObstacleIndex].boundaryRight = y + NEXT_STEP_Y;
+        tempObstacleIndex++;
     }
-    obstacles[0].x = x;
-    obstacles[0].y = y;
-    obstacles[0].boundaryLeft = x - NEXT_STEP_X;
-    for (let a = 0; a < 4; a++) {
-        steps.push({x, y});
+    for (let a = 0; a < 5; a++) {
+        obstacles[curObstacleIndex].x = x + NEXT_STEP_X / 3;
+        curObstacleIndex++;
         x += NEXT_STEP_X;
+        steps.push({x, y});
     }
-    obstacles[0].boundaryRight = x;
-    y -= NEXT_STEP_Y;
-    steps.push({x, y});
-    y += NEXT_STEP_Y;
-    x += NEXT_STEP_X;
-    obstacles[1].x = x;
-    obstacles[1].y = y;
-    obstacles[1].boundaryLeft = x - NEXT_STEP_X;
+
+
     for (let a = 0; a < 4; a++) {
-        steps.push({x, y});
+        obstacles[curObstacleIndex].x = x + NEXT_STEP_X / 3;
+        if (a % 2 == 0) {
+            obstacles[curObstacleIndex].y = y - NEXT_STEP_Y * 1.5;
+            obstacles[curObstacleIndex].boundaryLeft = y - NEXT_STEP_Y * 3.5;
+            obstacles[curObstacleIndex].boundaryRight = y + NEXT_STEP_Y * 2.5;
+        } else {
+            obstacles[curObstacleIndex].y = y + NEXT_STEP_Y * 0.5;
+            obstacles[curObstacleIndex].boundaryLeft = y - NEXT_STEP_Y * 2.5;
+            obstacles[curObstacleIndex].boundaryRight = y + NEXT_STEP_Y * 3;
+        }
+        curObstacleIndex++;
         x += NEXT_STEP_X;
-    }
-    obstacles[1].boundaryRight = x;
-    y -= NEXT_STEP_Y;
-    steps.push({x, y});
-    y += NEXT_STEP_Y;
-    x += NEXT_STEP_X;
-    obstacles[2].x = x;
-    obstacles[2].y = y;
-    obstacles[2].boundaryLeft = x - NEXT_STEP_X;
-    for (let a = 0; a < 4; a++) {
-        steps.push({x, y});
-        x += NEXT_STEP_X;
-    }
-    obstacles[2].boundaryRight = x;
-    y -= NEXT_STEP_Y;
-    steps.push({x, y});
-    x -= NEXT_STEP_X;
-    y -= NEXT_STEP_Y;
-    steps.push({x, y});
-    x -= NEXT_STEP_X;
-    y -= NEXT_STEP_Y;
-    for (let a = 0; a < 7; a++) {
-        steps.push({x, y});
-        x -= NEXT_STEP_X;
+        steps.push({x, y, type: FINAL_PLATFORM});
     }
 
     finalX = x;
@@ -342,13 +380,13 @@ let obstacles = [
     {
         x: 0, 
         y: 0,
-        vx: 2,
+        vx: 7,
         vy: 0,
         boundaryLeft: 0,
         boundaryRight: 0,
         movementType: HORIZONTAL,
         type: OBSTACLE,
-        spriteType: 1,
+        spriteType: 3,
         rotate: true
     },
     {
@@ -366,13 +404,37 @@ let obstacles = [
     {
         x: 0, 
         y: 0,
-        vx: 4,
+        vx: 2,
         vy: 0,
         boundaryLeft: 0,
         boundaryRight: 0,
         movementType: HORIZONTAL,
         type: OBSTACLE,
-        spriteType: 2,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 1.5,
+        vy: 0,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: HORIZONTAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 1.5,
+        vy: 0,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: HORIZONTAL,
+        type: OBSTACLE,
+        spriteType: 1,
         rotate: true
     },
     {
@@ -397,13 +459,204 @@ let obstacles = [
         movementType: HORIZONTAL,
         type: OBSTACLE,
         spriteType: 2,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 1,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 1,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 1.5,
+        vy: 0,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: HORIZONTAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 1.5,
+        vy: 0,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: HORIZONTAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 1.5,
+        vy: 0,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: HORIZONTAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 1.5,
+        vy: 0,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: HORIZONTAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 1.5,
+        vy: 0,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: HORIZONTAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 1.5,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 1.5,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 1.5,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 1.5,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 1.5,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 1,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 2.5,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 3,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 2.5,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 3,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 2.5,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 3,
+        rotate: true
+    },
+    {
+        x: 0, 
+        y: 0,
+        vx: 0,
+        vy: 2.5,
+        boundaryLeft: 0,
+        boundaryRight: 0,
+        movementType: VERTICAL,
+        type: OBSTACLE,
+        spriteType: 3,
         rotate: true
     },
 ];
 function generateObstacles(jumpQuestSheet) {
 	let obstacleSprites = [];
 	for (let obstacleData of obstacles) {
-        console.log("dafuq");
         let obstacle;
         switch(obstacleData.spriteType) {
             case 1:
@@ -420,7 +673,7 @@ function generateObstacles(jumpQuestSheet) {
                 break;
         } 
 		obstacleSprites.push(obstacle);
-		Object.assign(obstacle, obstacleData);
+        Object.assign(obstacle, obstacleData);
 		obstacle.y -= 10;
 		obstacle.halfWidth = obstacle.width / 2 - obstacle.width / 4;
 		obstacle.type = obstacleData.type;

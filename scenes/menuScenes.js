@@ -232,10 +232,8 @@ function startOut() {
 
 
 function createCharacterCreationMenu(characterTextures) {
-    console.log(characterTextures);
 	const characterCreation = new SContainer();
 	const selectedCharacter = createSelectedCharacterContainer(characterTextures);
-    console.log(selectedCharacter.character);
 	const characterSelection = createCharacterSelectionContainer(
 								selectedCharacter.character,
 								characterTextures
@@ -397,7 +395,6 @@ function createCharacterSelectionContainer(characterInFrame, characterTextures) 
 
 	// this function is in this closure to access the 'selectedCharId' variable
 	function onCharacterSelection(characterContainer) {
-		console.log("we have clicked!");
 		audioContext.clickRelease.play();
 		let currentCharId = characterContainer.characterId;
 		if (selectedCharId === currentCharId) return;
@@ -1028,7 +1025,7 @@ function createLoadingScreen(mainContainer) {
 		align: 'center',
 		fontWeight: 'bold',
 	});
-	let loadingPercentage = new Text('%', {
+	let loadingPercentage = new Text('0 %', {
         fontFamily: 'Times New Roman',
         fontSize: 40,
         fill: 0xFFFFFFFF,

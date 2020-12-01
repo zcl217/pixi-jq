@@ -4,9 +4,16 @@ import {
 	OBSTACLE, 
 	WALL, 
 	FINAL_PLATFORM,
-	TELEPORT_PLATFORM
+	TELEPORT_PLATFORM,
+	SCENES
  } from '../constants/constants.js';
-import { setYVelocity, setXVelocity, setPlayerContainerPosition, getPlayerReachedGoal } from '../main.js';
+import { 
+	setYVelocity,
+	setXVelocity,
+	setPlayerContainerPosition,
+	getPlayerReachedGoal,
+	changeScene 
+} from '../main.js';
 import { audioContext } from '../helpers/audio.js';
 import { sock } from '../sockClient.js';
 
@@ -143,8 +150,6 @@ export const handleCollision = (
 	currentState,
 	currentlyCollidingSprites
 ) => {
-	console.log(direction + " " + currentState);
-
 	switch(entity.type) {
 		case OBSTACLE:
 			flinchSprite(sprite, direction);
@@ -175,7 +180,6 @@ export const handleCollision = (
 					//return;
 					if (sock) {
 						if (!getPlayerReachedGoal()) {
-							audioContext.firstPlace.play();
 							sock.send(JSON.stringify({
 								type: socketTypes.REACHED_GOAL,
 							}));
@@ -184,6 +188,9 @@ export const handleCollision = (
 						}
 					} else {
 						audioContext.jumpQuestFinished.play();
+						setTimeout(() => {
+							changeScene(SCENES.STAGE_SELECTION);
+						}, 3000);
 					}
 					entity.type = '';
 					break;

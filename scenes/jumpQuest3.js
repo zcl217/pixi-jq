@@ -35,7 +35,7 @@ function generateBackgrounds(jumpQuestScene, loader) {
     let jumpQuestSheet = loader.resources[ASSET_PATH + "sprites/jumpQuest1.json"].spritesheet;
 
     let clouds = new TilingSprite(loader.resources.ludiClouds.texture,
-        loader.resources.ludiClouds.texture.width,
+        loader.resources.ludiClouds.texture.width * 1.5,
         loader.resources.ludiClouds.texture.height);
     jumpQuestScene.addChild(clouds, 1);
     jumpQuestScene.clouds = clouds;
@@ -82,7 +82,6 @@ function createJumpQuest3Viewport(
 	for (let step of steps) addChildToViewportSorter(step);
 	
     const obstacles = generateObstacles(jumpQuestSheet);
-    console.log(obstacles[0]);
 	entityGrid[0].push(...obstacles);
 	
 	let finishFlag = new Sprite(jumpQuestSheet.textures['finishFlag.png']);
@@ -137,7 +136,6 @@ function generateSteps(entityGrid, jumpQuestSheet) {
 		let step = new Sprite(jumpQuestSheet.textures['jumpQuest1Step.png']);
 		steps.push(step);
 		Object.assign(step, position);
-		if (step.type === TELEPORT_PLATFORM) console.log(step);
 		step.halfWidth = step.width / 2 - 12;
 		if (position.type !== INVISIBLE) {
 			entityGrid[0].push(step);
@@ -186,7 +184,6 @@ function generateStepPositions() {
 		y
 	});
 	y -= NEXT_STEP_Y;
-	console.log(x);
 	for (let a = 0; a < 7; a++) {
 		steps.push({
 			x,
@@ -200,7 +197,6 @@ function generateStepPositions() {
 		y
 	});
 	y -= NEXT_STEP_Y;
-	console.log(x);
 	for (let a = 0; a < 7; a++) {
 		steps.push({
 			x,
@@ -239,7 +235,6 @@ function generateStepPositions() {
 	y -= NEXT_STEP_Y;
 	for (let a = 0; a < 8; a++) {
 		let randomBlock = Math.round(Math.random()*1);
-		console.log(randomBlock);
 		if (a % 2 === 0) {
 			let currentStep = generateRandomTeleportStep(x, y + NEXT_STEP_Y, teleportX, teleportY, randomBlock);
 			steps.push(currentStep);
@@ -419,7 +414,6 @@ function generateObstacles(jumpQuestSheet) {
 		let obstacle = new Sprite(jumpQuestSheet.textures['obstacle.png']);
 		obstacleSprites.push(obstacle);
 		Object.assign(obstacle, obstacleData);
-		console.log(obstacle);
 		obstacle.y -= obstacle.height;
 		obstacle.halfWidth = obstacle.width / 2 - obstacle.width / 4;
 		obstacle.type = obstacleData.type;

@@ -2,15 +2,15 @@
 
 "bgTowerFar.png":
 {
-	"frame": {"x":0,"y":0,"w":134,"h":721},
+	"frame": {"x":0,"y":0,"w":134,"h":1024},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":134,"h":721},
-	"sourceSize": {"w":134,"h":721}
+	"spriteSourceSize": {"x":0,"y":0,"w":134,"h":1024},
+	"sourceSize": {"w":134,"h":1024}
 },
 "bgTowerNear.png":
 {
-	"frame": {"x":134,"y":0,"w":242,"h":1114},
+	"frame": {"x":137,"y":0,"w":242,"h":1114},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":242,"h":1114},
@@ -18,7 +18,7 @@
 },
 "finishFlag.png":
 {
-	"frame": {"x":376,"y":0,"w":67,"h":132},
+	"frame": {"x":382,"y":0,"w":67,"h":132},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":67,"h":132},
@@ -26,7 +26,7 @@
 },
 "jumpQuest1Step.png":
 {
-	"frame": {"x":443,"y":0,"w":63,"h":41},
+	"frame": {"x":452,"y":0,"w":63,"h":41},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":41},
@@ -34,7 +34,7 @@
 },
 "midClouds.png":
 {
-	"frame": {"x":506,"y":0,"w":1440,"h":900},
+	"frame": {"x":518,"y":0,"w":1440,"h":900},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":1440,"h":900},
@@ -42,7 +42,7 @@
 },
 "obstacle.png":
 {
-	"frame": {"x":0,"y":1114,"w":31,"h":29},
+	"frame": {"x":0,"y":1117,"w":31,"h":29},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":31,"h":29},
@@ -50,7 +50,7 @@
 },
 "platform1.png":
 {
-	"frame": {"x":31,"y":1114,"w":1138,"h":231},
+	"frame": {"x":34,"y":1117,"w":1138,"h":231},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":1138,"h":231},
@@ -58,7 +58,7 @@
 },
 "platform2.png":
 {
-	"frame": {"x":1169,"y":1114,"w":535,"h":214},
+	"frame": {"x":1175,"y":1117,"w":535,"h":214},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":535,"h":214},
@@ -66,7 +66,7 @@
 },
 "platform3.png":
 {
-	"frame": {"x":0,"y":1345,"w":433,"h":211},
+	"frame": {"x":0,"y":1351,"w":433,"h":211},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":433,"h":211},
@@ -74,7 +74,7 @@
 },
 "upperClouds.png":
 {
-	"frame": {"x":433,"y":1345,"w":1440,"h":900},
+	"frame": {"x":436,"y":1351,"w":1440,"h":900},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":1440,"h":900},
@@ -88,8 +88,8 @@
 	"version": "1.0",
 	"image": "jumpQuest1.png",
 	"format": "RGBA8888",
-	"size": {"w":1946,"h":2245},
+	"size": {"w":1958,"h":2251},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:bc5b492c8cce19ada1f3ed9e709218bc:e94f61d6b3d148b5210407bb750c7ed1:1b65867a411be17df9db5a20a4268d5b$"
+	"smartupdate": "$TexturePacker:SmartUpdate:4c6daf550a16ea28486a40553c1bd1a1:a49a7bff719a280a093cc6fe2e62c92f:1b65867a411be17df9db5a20a4268d5b$"
 }
 }

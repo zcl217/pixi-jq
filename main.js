@@ -222,7 +222,7 @@ function gameLoop(delta) {
 	player.nextFrameX = playerContainer.x + player.vx;
 	player.nextFrameY = playerContainer.y + player.vy;
 	handlePlayerState();
-	if (updatedScene && updatedScene !== SCENES.MULTIPLAYER_LOBBY) {
+	if (updatedScene && updatedScene !== SCENES.MULTIPLAYER_LOBBY && updatedScene !== SCENES.STAGE_SELECTION) {
 		handleClouds();
 		handleObstacleMovement(delta);
 		handleTimerPositioning();
@@ -236,18 +236,8 @@ function shouldRender(mainContainer) {
 
 function handleScene() {
 	if (mainContainer.currentScene !== updatedScene) {
-		console.log(mainContainer.currentScene + " " + updatedScene);
 		mainContainer.currentScene = updatedScene;
 		resetValues();
-		// I think we have to also clear the players in viewport sorter, or 
-		// find a way to only add new players in them once and never do that again
-		// before adding them again. not sure how we will handle
-		// changing back and forth between jq and lobby
-
-		//also fix the logic for how we do this currentscene !== updatedscene thing
-		// right now i'm just toggling menuScenes.visible = false in onStageConfirm
-		// but we also do that another time in createJumpQuest, so must be a way
-		// we can simplify this
 		obstacleList.length = 0;
 		let args = [
 			mainContainer,
@@ -256,7 +246,6 @@ function handleScene() {
 			audioContext,
 			playerContainer
 		];
-		console.log(updatedScene);
 		switch (updatedScene) {
 			case SCENES.JUMP_QUEST_1:
 				createJumpQuest(...args, 1);
@@ -274,6 +263,13 @@ function handleScene() {
 			case SCENES.JUMP_QUEST_4:
 				createJumpQuest(...args, 4);
 				handleJumpQuestSceneChange(4);
+				break;
+			case SCENES.STAGE_SELECTION:
+				hideJumpQuestScenes();
+				mainContainer.menuScenes.visible = true;
+				mainContainer.menuScenes[SCENES.STAGE_SELECTION].visible = true;			
+				handleBGMTransition(SCENES.STAGE_SELECTION);
+				changeAppBackgroundColor(0x000000);
 				break;
 			case SCENES.MULTIPLAYER_LOBBY:
 				handleMultiplayerSceneChange();
@@ -324,7 +320,7 @@ function handleMultiplayerSceneChange() {
 	mainContainer.menuScenes.multiplayerLobby.addChild(playerContainer);
 	playerContainer.x = LOBBY_START_POSITION_X;
 	playerContainer.y = LOBBY_START_POSITION_Y;
-	handleBGMTransition();
+	handleBGMTransition(SCENES.MULTIPLAYER_LOBBY);
 	changeAppBackgroundColor(0x000000);
 	// it's important to removeChildren here or else memory isn't released
 	// (I guess a reference of some sort still exists)
@@ -332,19 +328,17 @@ function handleMultiplayerSceneChange() {
 }
 
 function transferPlayersToNewScene(container) {
-	console.log(container);
-	console.log("Transferring players.");
 	otherPlayersMap.forEach((player, connectionId) => {
-		console.log(currentConnectionId + " " + connectionId);
+		//console.log(currentConnectionId + " " + connectionId);
 		// for some reason connectionId is sometimes undefined, not sure why
 		if (connectionId && (currentConnectionId !== connectionId)) {
-			console.log("Adding child!");
+			// console.log("Adding child!");
 			container.addChild(player);
 		}
 	});
 }
 
-function handleBGMTransition() {
+function handleBGMTransition(scene) {
 	if (audioContext.title.playing()) {
 		audioContext.title.fade(0.3, 0, 2000);
 		setTimeout(() => {
@@ -365,14 +359,20 @@ function handleBGMTransition() {
 			audioContext.jumpQuest2BGM.stop();
 		}, 3000);
 	}
-	setTimeout(() => {
-		audioContext.lobby.play();
-		audioContext.lobby.fade(0, 0.3, 2000);
-	}, 2000);
+	if (scene === SCENES.MULTIPLAYER_LOBBY) {
+		setTimeout(() => {
+			audioContext.lobby.play();
+			audioContext.lobby.fade(0, 0.3, 2000);
+		}, 2000);
+	} else if (scene === SCENES.STAGE_SELECTION) {
+		setTimeout(() => {
+			audioContext.title.play();
+			audioContext.title.fade(0, 0.3, 2000);
+		}, 2000);
+	}
 }
 
 function hideJumpQuestScenes() {
-	viewportSorter.removeChildren();
 	mainContainer.jumpQuest1.visible = false;
 	mainContainer.jumpQuest2.visible = false;
 	mainContainer.jumpQuest3.visible = false;
@@ -397,7 +397,7 @@ function handleMultiplayer() {
 
 function handleOtherPlayers() {
 	while (playersToRemove.length > 0) {
-		console.log("Removing player");
+	//	console.log("Removing player");
 		let id = playersToRemove.pop();
 		let playerToRemove = otherPlayersMap.get(id);
 		if (playerToRemove) {
@@ -463,7 +463,7 @@ function updateOtherPlayerTextures(updatedPlayer, playerSprite) {
 }
 
 function addPlayer(playerToAdd) {
-	console.log("Adding player");
+	// console.log("Adding player");
 	let connectionId = playerToAdd.connectionId;
 	let newPlayerContainer = createCharacter(playerToAdd.playerName, playerToAdd.charId, characterTextures);
 	mainContainer.menuScenes.multiplayerLobby.addChild(newPlayerContainer);
@@ -489,10 +489,6 @@ function handlePlayerState() {
 			//check if on platform, if not then change to falling state
 			let onPlatform = false;
 			for (let entity of entityGrid[0]) {
-				if (entity.type === WALL) {
-					//	console.log(entity.x + " " + entity.width + " " + playerContainer.x);
-				}
-				//console.log(entity.type);
 				let direction = collisionDirection(player, entity);
 				if (!direction) continue;
 				switch (entity.type) {
@@ -618,13 +614,12 @@ function changePlayerState(state) {
 		default:
 			break;
 	}
-	console.log("CHANGING CHARACTER STATE TO " + currentState);
+	// console.log("CHANGING CHARACTER STATE TO " + currentState);
 }
 let currentlyCollidingSprites = new Set();
 function handleJump() {
 	// if collision (check not just platforms but all objects in grid)
 	for (let entity of entityGrid[0]) {
-		//		console.log(entity.type);
 		if (currentlyCollidingSprites.has(entity)) continue;
 		// if we're going up, ignore all entities (except walls and obstacles)
 		// we also need to record the entities we've ignored so that
@@ -658,7 +653,6 @@ function handleFall() {
 		if (currentlyCollidingSprites.has(entity)) continue;
 		if (entity.type === OBSTACLE) continue;
 		let direction = collisionDirection(player, entity);
-		//console.log(player.nextFrameY +  " " + player.gy +  " " + entity.y);
 		if (!direction) continue;
 		let newState = handleCollision(player, entity, direction, currentState, currentlyCollidingSprites);
 		changePlayerState(newState);
@@ -705,7 +699,8 @@ function horizontallyFlipCharacter(x) {
 }
 
 function moveBackgroundsRelatively(x, y) {
-	if (updatedScene === SCENES.MULTIPLAYER_LOBBY) return;
+	if (updatedScene === SCENES.MULTIPLAYER_LOBBY ||
+		updatedScene === SCENES.STAGE_SELECTION) return;
 	if (updatedScene === SCENES.JUMP_QUEST_1 || updatedScene === SCENES.JUMP_QUEST_3) {
 		for (let bg of mainContainer[updatedScene].movingBackgroundsFar) {
 			bg.x += (-x * BACKGROUND_SCALING_FAR);
@@ -763,8 +758,8 @@ function addViewportToMainContainer(stage) {
 			mainContainer.jumpQuest3.sortChildren();
 			break;
 		case 4:
-			mainContainer.jumpQuest3.addChild(viewportContainer, 10);
-			mainContainer.jumpQuest3.sortChildren();
+			mainContainer.jumpQuest4.addChild(viewportContainer, 10);
+			mainContainer.jumpQuest4.sortChildren();
 			break;
 		default:
 			break;

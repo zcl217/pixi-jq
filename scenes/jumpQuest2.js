@@ -107,7 +107,6 @@ function createJumpQuest2Viewport(
 	for (let step of steps) addChildToViewportSorter(step, 4);
 	
     const obstacles = generateObstacles(jumpQuestSheet);
-    console.log(obstacles[0]);
     entityGrid[0].push(...obstacles);
     
     dangerSignPositions.forEach((signData) => {
@@ -128,7 +127,7 @@ function createJumpQuest2Viewport(
 	finishFlag.scale.x = 0.7;
 	finishFlag.scale.y = 0.7;
 	finishFlag.x = finalX + finishFlag.width/2;
-	finishFlag.y = finalY + 3;
+	finishFlag.y = finalY + 5;
 	finishFlag.anchor.set(0, 1);
     
     generateJumpQuest2Boundaries(entityGrid);
@@ -180,7 +179,6 @@ function generateSteps(
 		let step = new Sprite(jumpQuestSheet.textures['jumpQuest2Step' + randomStep + '.png']);
 		steps.push(step);
 		Object.assign(step, position);
-        if (step.type === TELEPORT_PLATFORM) console.log(step);
 		step.halfWidth = step.width / 2 - 12;
 		if (position.type !== INVISIBLE) {
 			entityGrid[0].push(step);
