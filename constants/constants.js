@@ -93,7 +93,8 @@ if (local) {
     //MUSH_START_POSITION_X = 1340;
     MUSH_START_POSITION_Y = -600;
 } else {
-    SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
+    //SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
+    SERVER_URL = "http://ec2-54-146-43-67.compute-1.amazonaws.com/test";
     LUDI_START_POSITION_X = 760;
     LUDI_START_POSITION_Y = -400;
     MUSH_START_POSITION_X = 1070;
