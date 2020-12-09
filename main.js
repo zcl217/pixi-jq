@@ -22,12 +22,12 @@ import {
 import socketTypes from './constants/socketTypes.js';
 
 import {
-	sock,
+	primus,
 	connectionStatus,
 	updatedPlayerProperties,
 	currentConnectionId,
 	playersToRemove,
-} from './sockClient.js';
+} from './primusClient.js';
 
 import SContainer from './scripts/SContainer.js';
 
@@ -202,7 +202,7 @@ function initializeScenes() {
 }
 
 function gameLoop(delta) {
-	if (sock) {
+	if (primus) {
 		switch (connectionStatus) {
 			case CONNECTION_STATUS.PENDING:
 				return;
@@ -216,7 +216,7 @@ function gameLoop(delta) {
 	if (!shouldRender(mainContainer)) return;
 	handleScene();
 	// if multiplayer mode, update other players
-	if (sock) {
+	if (primus) {
 		handleMultiplayer();
 	}
 	player.nextFrameX = playerContainer.x + player.vx;
@@ -381,7 +381,7 @@ function hideJumpQuestScenes() {
 
 function handleMultiplayer() {
 	handleOtherPlayers();
-	sock.send(JSON.stringify({
+	primus.write({
 		type: socketTypes.UPDATE_PLAYER,
 		player: {
 			connectionId: currentConnectionId,
@@ -392,7 +392,7 @@ function handleMultiplayer() {
 			direction: player.scale.x,
 			name: playerContainer.name,
 		}
-	}));
+	});
 }
 
 function handleOtherPlayers() {
@@ -413,6 +413,7 @@ function handleOtherPlayers() {
 			(updatedPlayer.connectionId === currentConnectionId)) continue;
 		// add player if they aren't in the map
 		if (!otherPlayersMap.has(updatedPlayer.connectionId)) {
+			console.log("Adding player");
 			addPlayer(updatedPlayer);
 			continue;
 		}

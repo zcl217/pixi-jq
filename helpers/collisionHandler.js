@@ -15,7 +15,7 @@ import {
 	changeScene 
 } from '../main.js';
 import { audioContext } from '../helpers/audio.js';
-import { sock } from '../sockClient.js';
+import { primus } from '../primusClient.js';
 
 import { leftHeldDown, rightHeldDown, jumpButtonIsHeldDown } from './keyboardHandler.js';
 import socketTypes from '../constants/socketTypes.js';
@@ -178,11 +178,11 @@ export const handleCollision = (
 					//but create an invisible box where the player can't exit?
 					//changePlayerState(sprite, STATES.DISABLED);
 					//return;
-					if (sock) {
+					if (primus) {
 						if (!getPlayerReachedGoal()) {
-							sock.send(JSON.stringify({
+							primus.write({
 								type: socketTypes.REACHED_GOAL,
-							}));
+							});
 						} else {
 							audioContext.jumpQuestFinished.play();
 						}

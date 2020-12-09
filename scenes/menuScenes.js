@@ -17,7 +17,7 @@ import socketTypes from '../constants/socketTypes.js';
 
 import SContainer from '../scripts/SContainer.js';
 
-import { createConnection, sock, currentConnectionId } from '../sockClient.js';
+import { createConnection, primus, currentConnectionId } from '../primusClient.js';
 
 import { audioContext } from '../helpers/audio.js';
 import createCharacter from '../helpers/playerCreator.js';
@@ -659,10 +659,10 @@ function createStageSelection(mainContainer) {
 	function onStageConfirm() {
 		let currentScene = getCurrentScene();
 		if (selectedPlayerMode === MODES.MULTIPLAYER) {
-			sock.send(JSON.stringify({
+			primus.write({
 				type: socketTypes.UPDATE_SCENE,
 				scene: currentScene
-			}));
+			});
 			// if the jump quest ends, we want the host to also
 			// directly transition to the lobby screen instead of stage selection
 			toggleMenuVisibility(SCENES.STAGE_SELECTION, false);
@@ -830,7 +830,7 @@ function onRoomCreation(statusText) {
 	handleStatusText(statusText);
 	loadingAnimation = createLoadingAnimationInterval(statusText);
 
-	let createRoom = JSON.stringify({
+	let createRoom = {
 		type: socketTypes.CREATE_ROOM,
 		player: {
 			playerName,
@@ -840,18 +840,18 @@ function onRoomCreation(statusText) {
 			x: playerContainer.x,
 			y: playerContainer.y
 		}
-	});
-	// the sock client calls the handleSuccessfulRoomCreation function
+	};
+	// the websocket client calls the handleSuccessfulRoomCreation function
 	// TODO: figure out a way to decouple this
 	createConnection(SERVER_URL, [createRoom]);
 
-	sock.onclose = function() {
+	primus.on('end', function() {
 		console.log("connection closed");
 		clearInterval(loadingAnimation);
 		statusText.text = "Error: failed to connect to server";
 		statusText.x = MAIN_CONTAINER_WIDTH/2 - statusText.width/2;
 		statusText.style.fill = 0xF00909;
-    }
+    });
 }
 
 function handleStatusText(statusText) {
@@ -926,7 +926,7 @@ async function onJoinRoom(roomField, statusText) {
 	handleStatusText(statusText);
 	loadingAnimation = createLoadingAnimationInterval(statusText);
 
-	let joinRoom = JSON.stringify({
+	let joinRoom = {
 		type: socketTypes.JOIN_ROOM,
 		roomId: roomField.text,
 		player: {
@@ -937,18 +937,18 @@ async function onJoinRoom(roomField, statusText) {
 			x: playerContainer.x,
 			y: playerContainer.y
 		}
-	});
-	// the sock client calls the handleSuccessfulJoinRoom function
+	};
+	// the websocket client calls the handleSuccessfulJoinRoom function
 	// TODO: figure out a way to decouple this
 	createConnection(SERVER_URL, [joinRoom]);
 
-	sock.onclose = function() {
+	primus.on('end', function() {
 		console.log("connection closed");
 		clearInterval(loadingAnimation);
 		statusText.text = "Error: failed to join room.";
 		statusText.x = MAIN_CONTAINER_WIDTH/2 - statusText.width/2;
 		statusText.style.fill = 0xF00909;
-    }
+    });
 }
 
 function handleSuccessfulJoinRoom(roomId) {

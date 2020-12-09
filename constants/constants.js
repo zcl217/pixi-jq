@@ -73,7 +73,7 @@ for (let a = 1; a <= 16; a++) PLAYABLE_CHARACTERS.push(a.toString());
 const LOBBY_START_POSITION_X = 550;
 const LOBBY_START_POSITION_Y = -50;
 
-let local = false;
+let local = true;
 
 let SERVER_URL;
 let LUDI_START_POSITION_X;
@@ -81,7 +81,7 @@ let LUDI_START_POSITION_Y;
 let MUSH_START_POSITION_X;
 let MUSH_START_POSITION_Y;
 if (local) {
-    SERVER_URL = "http://localhost:3333/test";
+    SERVER_URL = "http://localhost:3333";
 
     // LUDI_START_POSITION_X = 610;
     // LUDI_START_POSITION_Y = -1730;
