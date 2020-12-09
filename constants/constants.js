@@ -73,7 +73,7 @@ for (let a = 1; a <= 16; a++) PLAYABLE_CHARACTERS.push(a.toString());
 const LOBBY_START_POSITION_X = 550;
 const LOBBY_START_POSITION_Y = -50;
 
-let local = true;
+let local = false;
 
 let SERVER_URL;
 let LUDI_START_POSITION_X;
