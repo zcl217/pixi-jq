@@ -50,7 +50,7 @@ function addMessageHandlers() {
                 handleSuccessfulJoinRoom(message.roomId);
                 break;
             case socketTypes.JOIN_ROOM_ERROR:
-                sock.close();
+                primus.end();
                 break;
             case socketTypes.SCENE_UPDATED:
                 changeScene(message.scene);
