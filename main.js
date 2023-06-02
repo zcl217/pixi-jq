@@ -141,6 +141,7 @@ let playerReachedGoal = false;
 let timeRemaining = TIME_REMAINING;
 
 function setup() {
+	Howler.mute(true);
 	mainContainer.removeChildren();
 	initializeCharacterTextures();
 	initializeScenes();
