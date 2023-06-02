@@ -79,6 +79,7 @@ let LUDI_START_POSITION_X;
 let LUDI_START_POSITION_Y;
 let MUSH_START_POSITION_X;
 let MUSH_START_POSITION_Y;
+console.log({local})
 if (local) {
     SERVER_URL = "http://localhost:3333";
 
@@ -92,6 +93,7 @@ if (local) {
     //MUSH_START_POSITION_X = 1340;
     MUSH_START_POSITION_Y = -600;
 } else {
+    console.log(95);
     //SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
     SERVER_URL = "tcp://0.tcp.jp.ngrok.io:17840";
     LUDI_START_POSITION_X = 760;
