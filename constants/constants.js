@@ -74,7 +74,6 @@ const LOBBY_START_POSITION_X = 550;
 const LOBBY_START_POSITION_Y = -50;
 
 let local = false;
-
 let SERVER_URL;
 let LUDI_START_POSITION_X;
 let LUDI_START_POSITION_Y;
@@ -94,7 +93,7 @@ if (local) {
     MUSH_START_POSITION_Y = -600;
 } else {
     //SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
-    SERVER_URL = "https://93aa-240f-101-94b3-1-45cd-9642-e245-c36a.ngrok-free.app/";
+    SERVER_URL = "tcp://0.tcp.jp.ngrok.io:17840";
     LUDI_START_POSITION_X = 760;
     LUDI_START_POSITION_Y = -400;
     MUSH_START_POSITION_X = 1070;
