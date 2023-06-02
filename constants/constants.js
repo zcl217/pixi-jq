@@ -94,7 +94,7 @@ if (local) {
     MUSH_START_POSITION_Y = -600;
 } else {
     //SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
-    SERVER_URL = "https://beautiful-puppy-2562f5.netlify.app:3333";
+    SERVER_URL = "https://93aa-240f-101-94b3-1-45cd-9642-e245-c36a.ngrok-free.app/";
     LUDI_START_POSITION_X = 760;
     LUDI_START_POSITION_Y = -400;
     MUSH_START_POSITION_X = 1070;
