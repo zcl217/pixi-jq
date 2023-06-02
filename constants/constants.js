@@ -94,7 +94,7 @@ if (local) {
     MUSH_START_POSITION_Y = -600;
 } else {
     //SERVER_URL = "https://jq-server-sock-333.herokuapp.com/test";
-    SERVER_URL = "wss://0.tcp.jp.ngrok.io:18873";
+    SERVER_URL = "ws://0.tcp.jp.ngrok.io:18873";
     console.log({SERVER_URL});
     LUDI_START_POSITION_X = 760;
     LUDI_START_POSITION_Y = -400;
